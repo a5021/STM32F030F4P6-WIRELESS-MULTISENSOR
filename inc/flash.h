@@ -13,6 +13,7 @@
 extern uint16_t flash_status;
 
 __STATIC_INLINE bool write2flash(uint16_t src[], uint8_t len) {
+
   __IO uint16_t* p = (__IO uint16_t*) FLASH_DATA_ADDR;
 
   /***************************************
@@ -21,10 +22,10 @@ __STATIC_INLINE bool write2flash(uint16_t src[], uint8_t len) {
   *
   ***************************************/
   
-  while ((FLASH->SR & FLASH_SR_BSY) != 0);           // Wait till no operation is on going
+  while ((FLASH->SR & FLASH_SR_BSY) != 0);           /* Wait till no operation is on going  */
   
-  if ((FLASH->CR & FLASH_CR_LOCK) != 0) {            // Check the Flash is locked
-    FLASH->KEYR = FLASH_KEY1;                        // Perform unlock sequence 
+  if ((FLASH->CR & FLASH_CR_LOCK) != 0) {            /* Check the Flash is locked           */
+    FLASH->KEYR = FLASH_KEY1;                        /* Perform unlock sequence             */
     FLASH->KEYR = FLASH_KEY2;
   }
 
@@ -34,22 +35,22 @@ __STATIC_INLINE bool write2flash(uint16_t src[], uint8_t len) {
   *
   **************************************/
   
-  FLASH->CR |= FLASH_CR_PER;                         // enable page erasing mode
-  FLASH->AR = FLASH_DATA_ADDR;                       // set page address
-  FLASH->CR |= FLASH_CR_STRT;                        // start the erasing
-  while ((FLASH->SR & FLASH_SR_BSY) != 0);           // Wait till page be erased
-  FLASH->CR &= ~FLASH_CR_PER;                        // reset page erasing flag
+  FLASH->CR |= FLASH_CR_PER;                         /* Enable page erasing mode            */
+  FLASH->AR = FLASH_DATA_ADDR;                       /* Set page address                    */
+  FLASH->CR |= FLASH_CR_STRT;                        /* Start the erasing                   */
+  while ((FLASH->SR & FLASH_SR_BSY) != 0);           /* Wait till page be erased            */
+  FLASH->CR &= ~FLASH_CR_PER;                        /* Reset page erasing flag             */
   
-  if ((FLASH->SR & FLASH_SR_EOP) != 0) {             // Check for End of Operation flag
-    FLASH->SR |= FLASH_SR_EOP;                       // Reset flag
+  if ((FLASH->SR & FLASH_SR_EOP) != 0) {             /* Check for End of Operation flag     */
+    FLASH->SR |= FLASH_SR_EOP;                       /* Reset flag                          */
   } else {
-    if ((FLASH->SR & FLASH_SR_WRPERR) != 0) {        // Check Write protection error 
-      flash_status |= FLASH_ERROR_WRITE_PROT;        // Report the error to the main progran
-      FLASH->SR |= FLASH_SR_WRPERR;                  // Clear the error flag
+    if ((FLASH->SR & FLASH_SR_WRPERR) != 0) {        /* Check Write protection error        */
+      flash_status |= FLASH_ERROR_WRITE_PROT;        /* Report the error to the main progran*/
+      FLASH->SR |= FLASH_SR_WRPERR;                  /* Clear the error flag                */
     } else {
-      flash_status |= FLASH_ERROR_UNKNOWN;           // Report the error
+      flash_status |= FLASH_ERROR_UNKNOWN;           /* Report the error                    */
     }
-    return false;                                    // break flashing
+    return false;                                    /* Break flashing                      */
   }
 
   /***************************************
@@ -58,10 +59,10 @@ __STATIC_INLINE bool write2flash(uint16_t src[], uint8_t len) {
   *
   ***************************************/
   
-  for (uint32_t i = FLASH_PAGE_SIZE; i > 0; i -= 4) { // Check the erasing of the page by reading all the page value
-    if (*(uint32_t *)(FLASH_DATA_ADDR + i - 4) != (uint32_t)0xFFFFFFFF) { // compare with erased value, all bits at 1
-      flash_status |= FLASH_ERROR_ERASE;             // report the error to the main progran
-      return false;                                  // break flashing
+  for (uint32_t i = FLASH_PAGE_SIZE; i > 0; i -= 4) { /* Check the erasing of the page by reading all the page value   */
+    if (*(uint32_t *)(FLASH_DATA_ADDR + i - 4) != (uint32_t)0xFFFFFFFF) { /* compare with erased value, all bits at 1  */
+      flash_status |= FLASH_ERROR_ERASE;             /* Report the error to the main progran                           */
+      return false;                                  /* Break flashing                                                 */
     }
   }
 
@@ -71,29 +72,29 @@ __STATIC_INLINE bool write2flash(uint16_t src[], uint8_t len) {
   *
   ***************************************/
   
-  FLASH->CR |= FLASH_CR_PG;                          // enable programming mode
-  for (uint8_t i = 0; i < len; i++) {                // start writing cycle
-    *p = src[i];                                     // write 16 bits data
-    while ((FLASH->SR & FLASH_SR_BSY) != 0);         // wait till data to be written
-    if ((FLASH->SR & FLASH_SR_EOP) != 0) {           // Check the EOP flag
-      FLASH->SR |= FLASH_SR_EOP;                     // Clear it
+  FLASH->CR |= FLASH_CR_PG;                          /* Enable programming mode             */
+  for (uint8_t i = 0; i < len; i++) {                /* Start writing cycle                 */
+    *p = src[i];                                     /* Write 16 bits data                  */
+    while ((FLASH->SR & FLASH_SR_BSY) != 0);         /* Wait till data to be written        */
+    if ((FLASH->SR & FLASH_SR_EOP) != 0) {           /* Check the EOP flag                  */
+      FLASH->SR |= FLASH_SR_EOP;                     /* Clear it                            */
     } else {
-      if ((FLASH->SR & FLASH_SR_PGERR) != 0) {       // Check Programming error
-        flash_status = FLASH_ERROR_PROG_FLAG;        // save error code
-        FLASH->SR |= FLASH_SR_PGERR;                 // Clear programming error flag
-      } else if ((FLASH->SR & FLASH_SR_WRPERR) != 0) { // Check write protection
-        flash_status = FLASH_ERROR_WRITE_PROT;       // save error code
-        FLASH->SR |= FLASH_SR_WRPERR;                // Clear write protection error flag
+      if ((FLASH->SR & FLASH_SR_PGERR) != 0) {       /* Check Programming error             */
+        flash_status = FLASH_ERROR_PROG_FLAG;        /* Save error code                     */
+        FLASH->SR |= FLASH_SR_PGERR;                 /* Clear programming error flag        */
+      } else if ((FLASH->SR & FLASH_SR_WRPERR) != 0) { /* Check write protection            */
+        flash_status = FLASH_ERROR_WRITE_PROT;       /* Save error code                     */
+        FLASH->SR |= FLASH_SR_WRPERR;                /* Clear write protection error flag   */
       } else {
-        flash_status = FLASH_ERROR_UNKNOWN;          // save error code
+        flash_status = FLASH_ERROR_UNKNOWN;          /* Save error code                     */
       }
-      FLASH->CR &= ~FLASH_CR_PG;                     // disable programming      
-      return false;                                  // break flashing
+      FLASH->CR &= ~FLASH_CR_PG;                     /* Disable programming                 */
+      return false;                                  /* Break flashing                      */
     }
-    p++;                                             // next address to write data
+    p++;                                             /* Next address to write data          */
   }
   
-  FLASH->CR &= ~FLASH_CR_PG;                         // disable programming
+  FLASH->CR &= ~FLASH_CR_PG;                         /* Disable programming                 */
   return true;
 }
 
