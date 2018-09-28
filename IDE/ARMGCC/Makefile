@@ -1,14 +1,10 @@
 TARGET = STM32F030-WIRELESS-MULTISENSOR
 
-# debug build?
 DEBUG = 0
-# optimization
-OPT = -Ofast
+OPT = -Ofast -flto
 
-# Build path
 BUILD_DIR = _build
 
-# C sources
 C_SOURCES =  \
 ../../src/adc.c \
 ../../src/bmp180.c \
@@ -16,7 +12,6 @@ C_SOURCES =  \
 ../../main.c \
 ../../drivers/src/system_stm32f0xx.c 
 
-# ASM sources
 ASM_SOURCES =  \
 ./startup_stm32f031x6.s
 
@@ -38,53 +33,40 @@ endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
  
-# C defines
 C_DEFS =  \
 -DSTM32F031x6 \
 -DSWD_DISABLED \
 -DNDEBUG
 
-# C includes
 C_INCLUDES =  \
 -I../../drivers/inc \
 -I../../inc/CMSIS  \
 -I../../inc \
 -Iinc
 
-# compile gcc flags
 ASFLAGS = -mcpu=cortex-m0 -mthumb $(OPT) -Wall -fdata-sections -ffunction-sections
-
-CFLAGS = -mcpu=cortex-m0 -mthumb $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11
+CFLAGS  = -mcpu=cortex-m0 -mthumb $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif
 
-
-# Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 STLINK = ST-LINK_CLI.exe
 STLINK_FLAGS = -c UR -V -P $(BUILD_DIR)/$(TARGET).hex -Hardrst -Run
 
-# link script
 LDSCRIPT = STM32F031F6Px_FLASH.ld
 
-# libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
 LDFLAGS = -mcpu=cortex-m0 -mthumb -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
-# default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
-#######################################
-# build the application
-#######################################
-# list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
-# list of ASM program objects
+
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
@@ -115,15 +97,7 @@ gccversion :
 program: $(BUILD_DIR)/$(TARGET).hex
 	$(STLINK) $(STLINK_FLAGS) 
 
-#######################################
-# clean up
-#######################################
 clean:
 	-rm -fR $(BUILD_DIR)
   
-#######################################
-# dependencies
-#######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
-
-# *** EOF ***
