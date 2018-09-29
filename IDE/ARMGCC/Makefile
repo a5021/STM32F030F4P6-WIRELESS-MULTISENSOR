@@ -12,8 +12,7 @@ C_SOURCES =  \
 ../../main.c \
 ../../drivers/src/system_stm32f0xx.c 
 
-ASM_SOURCES =  \
-./startup_stm32f031x6.s
+ASM_SOURCES = startup_stm32f031x6.s
 
 PREFIX = arm-none-eabi-
 

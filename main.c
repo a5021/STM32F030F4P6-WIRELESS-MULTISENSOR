@@ -165,13 +165,13 @@ int main() {
     NRF24_SETUP_RADIO(NRF24_TX_POWER_LOWEST, NRF24_DATA_RATE_2M);
 
   /*
-  
+
   Page 30 of nRF24L01+ Product Specification:
-  
-  In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled. 
+
+  In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled.
   In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
   DPL enabled must have the DPL_P0 bit in DYNPD set.
-  
+
   */
 
     NRF24_SET_FEATURE(NRF24_EN_PAYLOAD_NOACK | NRF24_EN_DYN_PAYLOAD);
@@ -288,7 +288,9 @@ int main() {
   }
 
     // calculate payload size that depends on the data available
-  uint8_t pSize = (NRF24_PAYLOAD_SIZE / 2) + ((SKIP_LUMI(nvStatus)) ? 0 : 2) + ((PKT_ID(CYCLE_COUNT) == 0) ? 3 : 0);
+  uint8_t pSize = (NRF24_PAYLOAD_SIZE / 2) +
+                  ((SKIP_LUMI(nvStatus)) ? 0 : 2) +
+                  ((PKT_ID(CYCLE_COUNT) == 0) ? 3 : 0);
 
   if (pSize == 7) {
 
@@ -322,7 +324,7 @@ int main() {
         nvStatus |= NV_LSI_CALIBRATION_REQ;
       }
     }
-    if ((CYCLE_COUNT & 2048U) == 2048UL) {        // every 34 hours
+    if ((CYCLE_COUNT & 2048UL) == 2048UL) {       // every 34 hours
       nvStatus &= ~NV_EVENT_DAILY;
       if ((CYCLE_COUNT & 8192UL) == 8192UL) {     // every 5.6 days
         nvStatus &= ~NV_EVENT_WEEKLY;
@@ -396,7 +398,7 @@ int main() {
   /*            Start transmission                                            */
   /****************************************************************************/
 
-  CE_HIGH();                                   // start TX pulse
+  CE(HIGH);                                    // start TX pulse
   uint32_t cpu_speed = RCC->CFGR;
   RUN_MCU_AT(TWO_MHZ);                         // slow down CPU speed
                                                //   to make TX pulse wider
@@ -414,7 +416,7 @@ int main() {
   EXTI->EMR = 0x0002;                          // enable event
   EXTI->FTSR = 0x0002;                         // on falling edge
 
-  CE_LOW();                                    // finish TX pulse
+  CE(LOW);                                     // finish TX pulse
 
   /****************************************************************************/
   /*            Sleep till transmission ends                                  */

@@ -146,7 +146,7 @@
 //
 #define NRF24_SETUP_AW_0           (1 << 0)
 #define NRF24_SETUP_AW_1           (1 << 1)
-   
+
 #define  NRF24_ADDR_WIDTH_3        (NRF24_SETUP_AW_0)
 #define  NRF24_ADDR_WIDTH_4        (NRF24_SETUP_AW_1)
 #define  NRF24_ADDR_WIDTH_5        (NRF24_SETUP_AW_0 | NRF24_SETUP_AW_1)
@@ -164,7 +164,7 @@
 #define NRF24_SETUP_RETR_ARC_1     (1 << 1)
 #define NRF24_SETUP_RETR_ARC_2     (1 << 2)
 #define NRF24_SETUP_RETR_ARC_3     (1 << 3)
-// 
+//
 //  Auto Retransmit Delay
 //  ‘0000’ – Wait 250µS
 //  ‘0001’ – Wait 500µS
@@ -204,7 +204,7 @@
 #define NRF24_RF_SETUP_RF_DR_HIGH  (1 << RF_DR_HIGH)
 #define NRF24_RF_SETUP_PLL_LOCK    (1 << PLL_LOCK)
 #define NRF24_RF_SETUP_RF_DR_LOW   (1 << RF_DR_LOW)
-// bit 6 -- reserved 
+// bit 6 -- reserved
 #define NRF24_RF_SETUP_CONT_WAVE   (1 << CONT_WAVE)
 
 // 07: STATUS -- Status Register (In parallel to the SPI command
@@ -215,7 +215,7 @@
 //  1: TX FIFO full.
 //  0: Available locations in TX FIFO.
 //
-#define NRF24_STATUS_TX_FULL       (1 << TX_FULL)   
+#define NRF24_STATUS_TX_FULL       (1 << TX_FULL)
 //
 //  Data pipe number for the payload available for
 //  reading from RX_FIFO
@@ -235,12 +235,12 @@
 //  Count retransmitted packets. The counter is reset
 //  when transmission of a new packet starts.
 //
-#define NRF24_OBSERVE_TX_ARC_CNT_0 (1 << 0) 
+#define NRF24_OBSERVE_TX_ARC_CNT_0 (1 << 0)
 #define NRF24_OBSERVE_TX_ARC_CNT_1 (1 << 1)
 #define NRF24_OBSERVE_TX_ARC_CNT_2 (1 << 2)
 #define NRF24_OBSERVE_TX_ARC_CNT_3 (1 << 3)
 //
-//  Count lost packets. The counter is overflow protected to 15, 
+//  Count lost packets. The counter is overflow protected to 15,
 //  and discontinues at max until reset.
 //  The counter is reset by writing to RF_CH.
 //
@@ -280,7 +280,7 @@
 // ============================================================
 #define NRF24_FIFO_STATUS_RX_EMPTY (1 << RX_EMPTY)
 #define NRF24_FIFO_STATUS_RX_FULL  (1 << RX_FULL)
-// bits 2:3 are reserved 
+// bits 2:3 are reserved
 #define NRF24_FIFO_STATUS_TX_EMPTY (1 << TX_EMPTY)
 #define NRF24_FIFO_STATUS_TX_FULL  (1 << TX_FULL)
 #define NRF24_FIFO_STATUS_TX_REUSE (1 << TX_REUSE)
@@ -304,17 +304,26 @@
 #define NRF24_EN_PAYLOAD_NOACK     NRF24_FEATURE_EN_ACK_PAY
 #define NRF24_EN_DYN_PAYLOAD       NRF24_FEATURE_EN_DPL
 
-#define CSN_LOW()                  GPIOA->BSRR = GPIO_BSRR_BR_4
-#define CSN_HIGH()                 GPIOA->BSRR = GPIO_BSRR_BS_4
-#define CE_LOW()                   GPIOA->BSRR = GPIO_BSRR_BR_3
-#define CE_HIGH()                  GPIOA->BSRR = GPIO_BSRR_BS_3
+// #define SET_HIGH                  GPIO_BSRR_BS_
+// #define SET_LOW                   GPIO_BSRR_BR_
+
+// #define GLUE2(A, B)               A##B
+// #define GLUE(A, B)                GLUE2(A, B)
+
+#define CSN(STATE)                 GPIOA->BSRR = GLUE(STATE, 4)
+#define CE(STATE)                  GPIOA->BSRR = GLUE(STATE, 3)
+
+// #define CSN_LOW()                  GPIOA->BSRR = GPIO_BSRR_BR_4
+// #define CSN_HIGH()                 GPIOA->BSRR = GPIO_BSRR_BS_4
+// #define CE_LOW()                   GPIOA->BSRR = GPIO_BSRR_BR_3
+// #define CE_HIGH()                  GPIOA->BSRR = GPIO_BSRR_BS_3
 
 #define  NRF24_AUTO_ACK_DISABLE    ((uint8_t)(0))
 
 #define  NRF24_DATA_RATE_250K      (1 << RF_DR_LOW)
 #define  NRF24_DATA_RATE_1M        (0)
 #define  NRF24_DATA_RATE_2M        (1 << RF_DR_HIGH)
-  
+
 #define  NRF24_OUTPUT_POWER_18DBM  (0)
 #define  NRF24_OUTPUT_POWER_12DBM  (1 << RF_PWR_LOW)
 #define  NRF24_OUTPUT_POWER_6DBM   (1 << RF_PWR_HIGH)
@@ -327,86 +336,78 @@
 
 #define NRF24_SET_ADDR_WIDTH(ADDR_WIDTH) \
           NRF_WRITE_REG(SETUP_AW, (ADDR_WIDTH))
-            
+
 #define NRF24_SET_AUTO_ACK(AA_STATE) \
           NRF_WRITE_REG(EN_AA, (AA_STATE))
-            
+
 #define NRF24_SET_RADIO_CHANNEL(CH) \
           NRF_WRITE_REG(RF_CH, (CH))
-            
+
 #define NRF24_SETUP_RADIO(TX_POWER, DATA_RATE) \
           NRF_WRITE_REG(RF_SETUP, ((DATA_RATE) | (TX_POWER)))
 
-#define NRF24_SET_DATA_RATE(DATA_RATE) \
-          NRF_WRITE_REG(RF_SETUP, DATA_RATE)
-           
-#define NRF24_SET_DATA_RATE_250K() \
-          nrf_write_register(RF_SETUP, NRF24_DATA_RATE_250K)
-        
-#define NRF24_SET_DATA_RATE_1M() \
-          nrf_write_register(RF_SETUP, NRF24_DATA_RATE_1M)
-        
-#define NRF24_SET_DATA_RATE_2M() \
-          nrf_write_register(RF_SETUP, NRF24_DATA_RATE_2M)
-        
 /*
 
 Page 30 of nRF24L01+ Product Specification:
 
-In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled. 
-In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with 
+In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled.
+In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
 DPL enabled must have the DPL_P0 bit in DYNPD set.
 
 */
 
 #define NRF24_SET_FEATURE(FT) \
           NRF_WRITE_REG(FEATURE, FT)
-            
+
 #define NRF24_SET_DPL_PIPE(DPL_PIPE) \
           NRF_WRITE_REG(DYNPD, (DPL_PIPE))
 
 #define NRF_WRITE_CMD(CMD)                                                   \
-          CSN_LOW();                                                         \
+          CSN(LOW);                                                          \
           *(uint8_t*)&SPI1->DR = (uint8_t)(CMD);                             \
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);                                             \
-          CSN_HIGH()
-            
+          CSN(HIGH)
+
+#define SPI_WRITE(OP, R_NO) *(uint8_t*)&SPI1->DR = (uint8_t)(OP | (REGISTER_MASK & R_NO));
+
 __STATIC_INLINE uint8_t nrf_w_reg(uint8_t regNo, uint8_t regVal) {
-  CSN_LOW();
-  *(uint8_t*)&SPI1->DR = (uint8_t)(W_REGISTER | (REGISTER_MASK & regNo));
+  CSN(LOW);
+  // *(uint8_t*)&SPI1->DR = (uint8_t)(W_REGISTER | (REGISTER_MASK & regNo));
+  SPI_WRITE(W_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
   uint8_t r = (uint8_t)SPI1->DR;
   *(uint8_t*)&SPI1->DR = regVal;
   SPI_SLEEP_WHILE_XFER();
   if((uint8_t)SPI1->DR);
-  CSN_HIGH();
+  CSN(HIGH);
   return r;
 }
-  
+
 __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
-  CSN_LOW();
-  *(uint8_t*)&SPI1->DR = (uint8_t)(R_REGISTER | (REGISTER_MASK & regNo));
+  CSN(LOW);
+  // *(uint8_t*)&SPI1->DR = (uint8_t)(R_REGISTER | (REGISTER_MASK & regNo));
+  SPI_WRITE(R_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
   if((uint8_t)SPI1->DR);
   *(uint8_t*)&SPI1->DR = NOP;
   SPI_SLEEP_WHILE_XFER();
-  CSN_HIGH();
+  CSN(HIGH);
   return (uint8_t)SPI1->DR;
 }
-            
+
 #define NRF_WRITE_REG(REG, VAL)                                              \
-          CSN_LOW();                                                         \
+          CSN(LOW);                                                          \
           *(uint8_t*)&SPI1->DR = (uint8_t)(W_REGISTER | (REGISTER_MASK & (REG)));\
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
           *(uint8_t*)&SPI1->DR = (uint8_t)(VAL);                             \
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
-          CSN_HIGH()
-            
+          CSN(HIGH)
+
 #define NRF24_WRITE_PAYLOAD(PL, SIZE)                                        \
-          CSN_LOW();                                                         \
+          CSN(LOW);                                                          \
                   /* - send the command: WRITE_PAYLOAD_WITH_NO_ACK - */      \
           *(uint8_t*)&SPI1->DR = (uint8_t)(W_TX_PAYLOAD_NOACK);              \
           SPI_SLEEP_WHILE_XFER();                                            \
@@ -417,10 +418,10 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
             SPI_SLEEP_WHILE_XFER();                                          \
             if((uint8_t)SPI1->DR); /* dummy read to reset flags */           \
           }                                                                  \
-          CSN_HIGH()
-            
+          CSN(HIGH)
+
 #define NRF24_POWER_UP() \
-          NRF_WRITE_REG(CONFIG, (      /* Turn ON transmitter              */\
+          nrf_w_reg(CONFIG, (uint8_t)( /* Turn ON transmitter              */\
             0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
             1 * NRF24_CONFIG_PWR_UP    |  /* turn power on                 */\
             1 * NRF24_CONFIG_EN_CRC    |  /* enable CRC                    */\
@@ -429,7 +430,7 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
             0 * NRF24_CONFIG_TX_DS     |  /* enable "TX Data Sent" flag    */\
             1 * NRF24_CONFIG_RX_DR        /* disable "RX Data Ready" flag  */\
           ))
-            
+
 #define NRF24_POWER_DOWN() \
           nrf_w_reg(CONFIG, (uint8_t)( /* Turn OFF transmitter             */\
             0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
@@ -447,10 +448,10 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
             1 * NRF24_STATUS_TX_DS     |                                     \
             1 * NRF24_STATUS_RX_DR                                           \
           ))
-      
+
 #define TX_FIFO         FLUSH_TX
 #define RX_FIFO         FLUSH_RX
-            
+
 #define NRF24_FLUSH(FIFO)    \
           NRF_WRITE_CMD(FIFO)
 
@@ -458,11 +459,11 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
           NRF24_STATUS_RX_P_NO_2 |     \
           NRF24_STATUS_RX_P_NO_1 |     \
           NRF24_STATUS_RX_P_NO_0       \
-        ))                             
-                                       
+        ))
+
 #define NRF24_TX_OK  ((uint8_t)(       \
           NRF24_OK               |     \
           NRF24_STATUS_TX_DS           \
         ))
-            
+
 #endif
