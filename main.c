@@ -11,36 +11,36 @@
 // #define SERIAL_DEBUG    1
 // #define USE_EXT_CODE 1
 
-#ifdef  SERIAL_DEBUG  
+#ifdef  SERIAL_DEBUG
   #include "usart.h"
 #endif
 
 int main() {
 
-  uint32_t adc_vcc, 
-           adc_vbat; 
-  
-  int32_t  adc_temp, 
-           si7021_temp, 
+  uint32_t adc_vcc,
+           adc_vbat;
+
+  int32_t  adc_temp,
+           si7021_temp,
            si7021_humi,
            bmp180_temp,
            bmp180_press;
 
-  uint32_t bh1750_lumi, 
+  uint32_t bh1750_lumi,
            wuTime;
-  
-  bool     bmp180_ok, 
-           si7021_ok, 
+
+  bool     bmp180_ok,
+           si7021_ok,
            bh1750_ok,
            adc_ok;
 
   nvStatus = NV_STATUS; // get status from the backup register (stored before standby)
-  
+
   SCB->SCR = SCB_SCR_SEVONPEND_Msk;
   __SEV();
   __WFE();
 
-#ifndef SWD_DISABLED  
+#ifndef SWD_DISABLED
   //Configure_DBG();
 #endif
 
@@ -49,7 +49,7 @@ int main() {
 #endif
 
   if (IS_POWER_CYCLE_REQUIRED()) {
-     
+
     powerCycle();  // make power cycle (off-on) on the vload rail
 
     nvStatus &= ~(
@@ -58,15 +58,19 @@ int main() {
       NV_SKIP_ADC                  |  // skip ad conversion
       NV_BH1750_RES_MASK              // set default BH1750 mode
     );
-    nvStatus |= NV_POWER_CYCLE_DONE;  // set power cycle flag
+
+    nvStatus |= (
+      NV_POWER_CYCLE_DONE          |  // set power cycle performed flag
+      NV_LSI_CALIBRATION_REQ          // set LSI calibration request
+    );
 
     /******************************************************************/
     /*            Wait until sensors become ready                     */
     /******************************************************************/
-    
+
     S_DELAY(6 * 80);         // (6*80*512*2 + 4 * 512) / 8000 = 61.7ms
   }
-  
+
   RCC->CSR |= RCC_CSR_RMVF;  // reset flags to prevent unwanted power cycling
 
   initI2C();                 // init peripherals to handle I2C sensors
@@ -74,15 +78,15 @@ int main() {
   /***************************************************************************/
   /*                           Read sensors                                  */
   /***************************************************************************/
-  
+
   bh1750_ok = (
     (!SKIP_LUMI(nvStatus) || (PKT_ID(CYCLE_COUNT) == 7)) &&  // check cond.
     bh1750_reset()                                       &&  // reset light sensor
     bh1750_start_conv(BH1750_PARAM)                          // start light conv
   );
-  
+
   si7021_ok = si7021_start_conv(SI7021_MEAS_HUMI_NOHOLD);    // start humi conv
-  
+
   bmp180_ok = ((    // read BMP180 sensor
     bmp180_start_conv(BMP180_TEMP)                       &&  // start temp conv
     (sleep_delay(convParam[0].delay), true)              &&  // sleep 4.5ms
@@ -110,21 +114,21 @@ int main() {
     (nvStatus |= NV_SKIP_ADC))                           ||  // set flag
     (s_delay(6), false)  // 6*512*2/8000 = ~1ms sleep if skipped
   );
-  
+
   bh1750_ok = (     // read BH1750 sensor
     bh1750_ok                                            &&  // if conv started
-    !(IS_BH1750_RES_HIGH() && (s_delay(936), false))     &&  // (936*2+4)*512/8000=~120 ms 
+    !(IS_BH1750_RES_HIGH() && (s_delay(936), false))     &&  // (936*2+4)*512/8000=~120 ms
     (i2c_enable(), true)                                 &&
     bh1750_get_result(&bh1750_lumi)                      &&
     (i2c_disable(), true)
   );
-  
+
   /****************************************************************************/
   /*            Configure MCU peripherals to drive NRF24L01                   */
   /****************************************************************************/
-  
+
   initSPI();                // init SPI peripheral
-  
+
   RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_FLITFEN    |
@@ -132,9 +136,9 @@ int main() {
 #endif
     RCC_AHBENR_GPIOAEN      // enable clock for GPIOA
   );
-  
+
   GPIOA->ODR = GPIO_ODR_4;              // prepare PA4 (NRF24_CSN) to set HIGH
-  
+
   GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA
 #ifndef SWD_DISABLED
     PIN_CONF(PIN(13), PINV_ALT_FUNC) |  // PA13 AF0 -- SYS_SWDIO
@@ -145,7 +149,7 @@ int main() {
     PIN_CONF(PIN(5), PINV_ALT_FUNC)  |  // PA5 AF0  -- SPI1_SCK
     PIN_CONF(PIN(6), PINV_ALT_FUNC)  |  // PA6 AF0  -- SPI1_MISO
     PIN_CONF(PIN(7), PINV_ALT_FUNC)     // PA7 AF0  -- SPI1_MOSI
-  );  
+  );
 
   /****************************************************************************/
   /*            Check if NRF24L01 init sequence needs to be performed         */
@@ -154,20 +158,31 @@ int main() {
   if (IS_NRF_INIT_REQUIRED()) {        // check if init required
 
     nvStatus |= NV_NRF_INIT_DONE;      // set 'init-done' flag
-    
-    NRF24_SET_ADDR_WIDTH(NRF24_ADDR_WIDTH_3);              
+
+    NRF24_SET_ADDR_WIDTH(NRF24_ADDR_WIDTH_3);
     NRF24_SET_AUTO_ACK(NRF24_AUTO_ACK_DISABLE);
     NRF24_SET_RADIO_CHANNEL(NRF_FREQ_CHANNEL);
     NRF24_SETUP_RADIO(NRF24_TX_POWER_LOWEST, NRF24_DATA_RATE_2M);
+
+  /*
+  
+  Page 30 of nRF24L01+ Product Specification:
+  
+  In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled. 
+  In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
+  DPL enabled must have the DPL_P0 bit in DYNPD set.
+  
+  */
+
     NRF24_SET_FEATURE(NRF24_EN_PAYLOAD_NOACK | NRF24_EN_DYN_PAYLOAD);
-    // NRF24_SET_DPL_PIPE(NRF24_DYNPD_DPL_P0);
+    NRF24_SET_DPL_PIPE(NRF24_DYNPD_DPL_P0);
     NRF24_FLUSH(TX_FIFO);
   }
 
   /****************************************************************************/
   /*            Powering NRF24L01's transmitter up                            */
   /****************************************************************************/
-  
+
   NRF24_POWER_UP();     /* Powering NRF24L01's transmitter up */
 
   /****************************************************************************/
@@ -181,22 +196,22 @@ int main() {
 #endif
     0                                        // disable all AHB clocks
   );
-  
+
   RCC->APB2ENR = 0;                          // disable SPI1
-        
+
              /* ===== run MCU at 32mHz ====== */
-  
-  turn_pll_on(RCC_CFGR_PLLMUL8);             
-  
+
+  turn_pll_on(RCC_CFGR_PLLMUL8);
+
   data_pack_t payload;                       // payload packed structure
 
   payload.pkt_id = PKT_ID(CYCLE_COUNT);      // set data packet ID (4 bits)
   payload.tx_status = TX_STATUS(nvStatus);   // set last TX result bit
   payload.sen_status = (i2c_status == 0);    // set sensors I/O result
-  
+
   if (bmp180_ok) {                           // if bmp180 data is available
     payload.bmp180_temp = bmp180_calc_rt(bmp180_temp); // convert raw temperature to -512 .. 512
-    payload.bmp180_press = KPA_TO_MMHG(bmp180_calc_rp(bmp180_press, BMP180_OSS)) - 700; 
+    payload.bmp180_press = KPA_TO_MMHG(bmp180_calc_rp(bmp180_press, BMP180_OSS)) - 700;
   }
 
   if (si7021_ok) {                           // if si7021 data is available
@@ -206,7 +221,7 @@ int main() {
     si7021_temp = (si7021_temp * 17572 / 65536 - 4685) / 10;
     payload.si7021_temp = si7021_temp;       // store it in payload's bits
   }
-  
+
   void (*turn_regulator)() = NULL;           // reset switch func ptr
 
   if (adc_ok) {                              // if ADC data is available
@@ -230,7 +245,7 @@ int main() {
     } else {
       wuTime = IGNORE_DAY_AND_HOUR | (3UL << 8);        // 3 minutes
     }
-    
+
     if (adc_vbat == adc_vcc) {
       if (adc_vbat < 201) {
         turn_regulator = turnRegulatorOn;
@@ -240,12 +255,12 @@ int main() {
       turn_regulator = turnRegulatorOff;
       nvStatus = (nvStatus & ~NV_NRF_INIT_DONE) | NV_LSI_CALIBRATION_REQ;
     }
-    
+
 #define P_ARR   ((uint8_t *)(&payload))
-    
+
     payload.adc_temp = adc_temp;             // put temp value into payload
     payload.adc_vbat = adc_vbat;             // put vbat value into payload
-    P_ARR[7] = adc_vcc - 160;                // put vcc value into payload  
+    P_ARR[7] = adc_vcc - 160;                // put vcc value into payload
   } else {
     wuTime = 0;   // reset var to disable unnecessary RTC alarm reprogramming
   }
@@ -254,7 +269,7 @@ int main() {
 
 #if (__GNUC__)
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif    
+#endif
     bh1750_lumi = bh1750_lumi * 10 / 12;     // convert raw data to Luxes
 #if (__GNUC__)
   #pragma GCC diagnostic pop
@@ -268,18 +283,18 @@ int main() {
     } else if (bh1750_lumi > 200) {          // at high illuminance levels
       nvStatus |= NV_BH1750_MODE_LOW;        // use LowRes mode
     }
-    // note: HiRes Mode 1 (both bits are low) will be set if light 
+    // note: HiRes Mode 1 (both bits are low) will be set if light
     //       intensity level is in range from 15 to 199.
   }
 
-    // calculate payload size that depends on the data available  
+    // calculate payload size that depends on the data available
   uint8_t pSize = (NRF24_PAYLOAD_SIZE / 2) + ((SKIP_LUMI(nvStatus)) ? 0 : 2) + ((PKT_ID(CYCLE_COUNT) == 0) ? 3 : 0);
-  
+
   if (pSize == 7) {
 
 #if (__GNUC__)
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif    
+#endif
 
     P_ARR[5] = ((uint8_t *)(&bh1750_lumi))[0];
     P_ARR[6] = ((uint8_t *)(&bh1750_lumi))[1];
@@ -292,13 +307,13 @@ int main() {
     ((uint16_t *)(&payload))[4] = bh1750_lumi; // payload.bh1750 = bh1750_lumi;
   }
 
-#ifdef USE_EXT_CODE  
+#ifdef USE_EXT_CODE
   csr = (uint8_t)((csr >> 24) | ((csr & RCC_CSR_V18PWRRSTF) == RCC_CSR_V18PWRRSTF) ? 0 : 1);
   if (csr != 0) {
     P_ARR[10] = csr;  //payload.ext_code = csr;
   }
-#endif  
-  
+#endif
+
   if ((CYCLE_COUNT & 64UL) == 64UL) {             // every hour
     nvStatus &= ~NV_EVENT_HOURLY;
     if ((CYCLE_COUNT & 128UL) == 128UL) {         // every two hours
@@ -316,8 +331,8 @@ int main() {
         }
       }
     }
-  }  
-  
+  }
+
   turn_pll_off(); /* ===== restore MCU speed ====== */
 
   /****************************************************************************/
@@ -328,19 +343,19 @@ int main() {
 #ifndef SWD_DISABLED
       RCC_AHBENR_FLITFEN    |
       RCC_AHBENR_SRAMEN     |
-#endif  
+#endif
       RCC_AHBENR_GPIOAEN                          // enable clock for GPIOA
     );
   RCC->APB2ENR = RCC_APB2ENR_SPI1EN;              // enable clock for SPI1
-  
+
   NRF24_WRITE_PAYLOAD(payload, pSize);
-  
+
   /****************************************************************************/
   /*            Clear NRF24L01's status flags                                 */
   /****************************************************************************/
 
   bool nrf_ok = ((NRF24_RESET_STATUS() & 0x0F) == NRF24_OK);
-  
+
   /****************************************************************************/
   /*          Tpd2stby delay (wait till NRF24L01's oscillator becomes stable) */
   /****************************************************************************/
@@ -360,14 +375,14 @@ int main() {
     RCC_AHBENR_FLITFEN    |
     RCC_AHBENR_GPIOAEN    |    // enable clock for GPIOA in debug mode
     RCC_AHBENR_SRAMEN     |
-#endif  
+#endif
     0                          // disable clock for GPIOA
   );
-  
+
   RCC->APB2ENR = 0;            // disable clock for SPI1
 
   S_DELAY(11);                 // (11*2 + 4) * 512 / 8000 = 1.664ms
-  
+
   RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_FLITFEN    |
@@ -376,7 +391,7 @@ int main() {
     RCC_AHBENR_GPIOAEN    |    // enable clock for GPIOA
     RCC_AHBENR_GPIOFEN         // enable clock for GPIOF
   );
-  
+
   /****************************************************************************/
   /*            Start transmission                                            */
   /****************************************************************************/
@@ -388,23 +403,23 @@ int main() {
   /****************************************************************************/
   /*            Configure PF1 as external interrupt line (NRF24L01 IRQ)       */
   /****************************************************************************/
-  
+
   GPIOF->MODER = ANALOG_MODE_FOR_ALL_PINS - PIN_CONF(PIN(1), PINV_INPUT);
   RCC->APB2ENR = RCC_APB2ENR_SYSCFGCOMPEN;     // enable clock for SYSCFG
-  
+
   SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI1_PF; // set PF1 as EXTI line
-  
+
   RCC->CFGR = cpu_speed;                       // restore CPU speed
-  
+
   EXTI->EMR = 0x0002;                          // enable event
   EXTI->FTSR = 0x0002;                         // on falling edge
- 
+
   CE_LOW();                                    // finish TX pulse
 
   /****************************************************************************/
   /*            Sleep till transmission ends                                  */
   /****************************************************************************/
-  
+
   RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_FLITFEN    |
@@ -421,13 +436,13 @@ int main() {
   } else {
     S_DELAY(2);                // (2*2 + 4) * 512 / 8000 = 512us
   }
-    
+
   /****************************************************************************/
   /*            Switch NRF24L01 to Power Down mode                            */
   /****************************************************************************/
 
   RCC->APB2ENR = RCC_APB2ENR_SPI1EN;        // disable SYSCFG, enable SPI1
-  
+
   RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_FLITFEN    |
@@ -439,7 +454,7 @@ int main() {
   nrf_ok = ((NRF24_TX_OK == NRF24_POWER_DOWN()) && nrf_ok);
 
   RCC->APB2ENR = 0;            // turn off SPI
-  
+
   /****************************************************************************/
   /*            Turn DC-DC ON/OFF if required                                 */
   /****************************************************************************/
@@ -456,7 +471,7 @@ int main() {
 #endif
     0                          // Disable all AHB peripherials
   );
-  
+
   /****************************************************************************/
 
   if (nrf_ok) {
@@ -464,7 +479,7 @@ int main() {
   } else {
     nvStatus &= ~(NV_LAST_TX_ATTEMPT_OK | NV_NRF_INIT_DONE) ;
       // check if at least two transmissions consequently failed
-    if (TX_STATUS(nvStatus) == 0) { 
+    if (TX_STATUS(nvStatus) == 0) {
       if ((nvStatus & NV_EVENT_DAILY) == 0) {
         nvStatus = (nvStatus & ~NV_POWER_CYCLE_DONE) | NV_EVENT_DAILY;
       }
@@ -474,8 +489,8 @@ int main() {
   /****************************************************************************/
   /*            Prepare to go into standby mode                               */
   /****************************************************************************/
-  
-  if (((RTC->ISR & RTC_ISR_INITS) != RTC_ISR_INITS) || 
+
+  if (((RTC->ISR & RTC_ISR_INITS) != RTC_ISR_INITS) ||
      ((nvStatus & NV_LSI_CALIBRATION_REQ) == NV_LSI_CALIBRATION_REQ)) {
 
     if ((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY) {
@@ -492,12 +507,12 @@ int main() {
     RCC->BDCR = (                        // with backup domain control reg ...
       RCC_BDCR_RTCEN    |                // enable RTC
       RCC_BDCR_RTCSEL_1                  // set LSI as RTC clock source
-    ); 
-    
+    );
+
     RTC_WRITE_ENABLE();                  // disable RTC write protection
-    
+
     RTC->ISR |= RTC_ISR_INIT;            // enter into RTC init stage
-    while ((RTC->ISR & RTC_ISR_INITF) != RTC_ISR_INITF); // wait RTC is stopped 
+    while ((RTC->ISR & RTC_ISR_INITF) != RTC_ISR_INITF); // wait RTC is stopped
 
     RTC->PRER = prep;                    // set sync and async RTC prescaler
 
@@ -506,59 +521,59 @@ int main() {
   } else {
     RCC->APB1ENR = RCC_APB1ENR_PWREN;    // enable power interface clock
     PWR->CR = PWR_CR_DBP;                // enable write to backup domain
-                                         
+
     RTC_WRITE_ENABLE();                  // disable RTC write protection
-                                         
+
     RTC->ISR |= RTC_ISR_INIT;            // enter into RTC init stage
-    while ((RTC->ISR & RTC_ISR_INITF) != RTC_ISR_INITF); // wait RTC is stopped 
+    while ((RTC->ISR & RTC_ISR_INITF) != RTC_ISR_INITF); // wait RTC is stopped
   }
-  
+
   RTC->TR = (uint32_t) 0;                // reset time to zero
 
   if ((wuTime != 0) && (wuTime != RTC->ALRMAR)) { // if a new wake up time is available
     RTC->CR &=~ RTC_CR_ALRAE;            // enter into alarm init stage
     while ((RTC->ISR & RTC_ISR_ALRAWF) != RTC_ISR_ALRAWF); // wait till alarm becomes inactive
     RTC->ALRMAR = wuTime;                // program alarm with new settings
-    RTC->CR = (                          
+    RTC->CR = (
       RTC_CR_ALRAE     |                 // alarm enable
-      RTC_CR_ALRAIE    |                 // alarm interrupt enable 
+      RTC_CR_ALRAIE    |                 // alarm interrupt enable
       RTC_CR_BYPSHAD                     // bypass RTC shadow registers
     );
   }
-  
+
   CYCLE_COUNT++;                         // update cycle counter
   NV_STATUS = nvStatus;                  // save status into backup register
-  
+
   RTC->ISR &= ~(RTC_ISR_ALRAF | RTC_ISR_INIT); // exit RTC init stage
- 
+
   RTC_WRITE_DISABLE();                   // protect RTC registers for writing
 
-//  Standby mode entry:    
+//  Standby mode entry:
 //  ===================
 //  WFI (Wait for Interrupt) or WFE (Wait for Event) while:
 //  – Set SLEEPDEEP bit in System Control register (SCB_SCR)
 //  – Set PDDS bit in Power Control register (PWR_CR)
 //  – Clear WUF bit in Power Control/Status register (PWR_CSR)
-  
+
   PWR->CR = (
     PWR_CR_PDDS      |                   // set PPDS bit (1 = Standby, 0 = Stop)
     PWR_CR_CSBF      |                   // clear Standby flag
     PWR_CR_CWUF                          // clear wakeup flag
-  );                                     
+  );
   // RCC->APB1ENR = 0;                      // disable PWR interface
 
   SCB->SCR = SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SEVONPEND_Msk;
 
-/*  
+/*
   __SEV();                               // send a dummy event
   __WFE();                               // reset all events
 */
   __WFE();                               // enter standby
-  
+
   // *** Should never get here!
- 
-  NVIC_SystemReset();  
-  
-}   
+
+  NVIC_SystemReset();
+
+}
 
 /*** END OF PROGRAM  ***/

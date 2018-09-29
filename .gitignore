@@ -37,5 +37,6 @@ IDE/armcc/RTE/
 IDE/ARMCC/DebugConfig/
 IDE/armgcc/_build/
 IDE/EWARM/Debug/
+IDE/EWARM/Release/
 IDE/EWARM/settings/
 settings/

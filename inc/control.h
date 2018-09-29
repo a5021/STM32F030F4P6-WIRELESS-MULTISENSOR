@@ -1,16 +1,10 @@
 #ifndef __CONTROL_INCLUDED
 #define __CONTROL_INCLUDED
 
-//#define DEFAULT_SLEEP_TIME      64
-#define NRF_FREQ_CHANNEL        1
+#define NRF_FREQ_CHANNEL        99
 #define BMP180_OSS              2
 
 //#define USE_EXT_CODE 1
-
-#ifdef TIME_PROFILING_ENABLED
-  extern uint32_t processingTime[];
-  extern uint8_t p_idx;
-#endif
 
 #define EIGHT_MHZ               RCC_CFGR_HPRE_DIV1
 #define FOUR_MHZ                RCC_CFGR_HPRE_DIV2
@@ -67,7 +61,7 @@
 #define IS_NRF_INIT_REQUIRED()         ((NV_STATUS & NV_NRF_INIT_DONE) == 0)
 #define IS_BMP180_PROM_AVAILABLE()     ((NV_STATUS & NV_BMP180_CAL_DATA_AVAILABLE) != 0)
 #define IS_LAST_TX_FAILED()            ((NV_STATUS & NV_LAST_TX_ATTEMPT_OK) != NV_LAST_TX_ATTEMPT_OK)
-// #define IS_POWER_CYCLE_REQUIRED() ((NV_STATUS & NV_POWER_CYCLE_DONE) == 0)
+
 #define IS_POWER_CYCLE_REQUIRED()                                         \
           ((PWR->CSR & PWR_CSR_SBF) != PWR_CSR_SBF)               ||      \
           ((RCC->CSR & (RCC_CSR_PINRSTF | RCC_CSR_SFTRSTF)) != 0) ||      \
@@ -218,7 +212,7 @@ __STATIC_INLINE void turn_pll_on(uint32_t mul) {
   while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL); // Wait until the PLL is switched on
 }
 
-void __STATIC_INLINE turn_pll_off(void) {
+__STATIC_INLINE void turn_pll_off(void) {
   RCC->CFGR &= (uint32_t) (~RCC_CFGR_SW);
   while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);
   RCC->CR &= (uint32_t)(~RCC_CR_PLLON);
@@ -226,14 +220,12 @@ void __STATIC_INLINE turn_pll_off(void) {
   // FLASH->ACR &= ~(FLASH_ACR_LATENCY | FLASH_ACR_PRFTBE);
 }
 
-uint32_t calc_rtc_divider(void);
 void turnRegulatorOn(void);
 void turnRegulatorOff(void);
-
-uint8_t powerCycle(void);
+void powerCycle(void);
 
 #ifndef SWD_DISABLED  
-void __STATIC_INLINE Configure_DBG(void) {
+__STATIC_INLINE void Configure_DBG(void) {
   /* Enable the peripheral clock of DBG register */
   RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
  

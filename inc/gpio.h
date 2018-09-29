@@ -1,7 +1,7 @@
 #ifndef __GPIO_INCLUDED
 #define __GPIO_INCLUDED
 
-#define ANALOG_MODE_FOR_ALL_PINS      0xFFFFFFFF
+#define ANALOG_MODE_FOR_ALL_PINS      0xFFFFFFFFUL
 #define PIN_CONF(PIN, MODE)           ((uint32_t)MODE << (PIN * 2))
 #define PIN_AF(PIN, AF)               ((uint32_t)AF << (4 * (PIN & 7)))
       

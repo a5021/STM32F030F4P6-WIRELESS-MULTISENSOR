@@ -1,21 +1,13 @@
-// #include <stdint.h>
-// #include <stddef.h>
-// #include <stdbool.h>
 #include "stm32f0xx.h"
 #include "gpio.h"
-// #include "control.h"
 #include "adc.h"
-// #include "spi.h"
 #include "tim.h"
-// #include "gpio.h"
-// #include "nrf24l01.h"
-// #include "flash.h"
 
-uint32_t i2c_status = 0;
-uint32_t nvStatus; // non-volatile system status
-uint16_t flash_status = 0;
+uint32_t i2c_status = 0;                   // I2C interface status
+uint32_t nvStatus;                         // non-volatile system status
+uint16_t flash_status = 0;                 // write flash status
 
-void __STATIC_INLINE check_vdd(void) {
+__STATIC_INLINE void check_vdd(void) {
   RCC->APB1ENR = RCC_APB1ENR_PWREN;        // enable clock for PWR
   PWR->CR = PWR_CR_PVDE | PWR_CR_PLS;      // enable PVD and set all PLS bits high
   RUN_MCU_AT(LOWEST_FREQ);                 // set lowest MCU speed
@@ -54,7 +46,7 @@ void turnRegulatorOff(void) {
   RUN_MCU_AT(EIGHT_MHZ);                   // restore normal MCU speed
 }
 
-uint8_t powerCycle(void) {
+void powerCycle(void) {
 
   RCC->AHBENR = (  
 #ifndef SWD_DISABLED
@@ -81,13 +73,15 @@ uint8_t powerCycle(void) {
     PIN_CONF(PIN(10), PINV_OUTPUT)      // PA10 OUT -- I2C_SDA (LOW)
   );
   
-  GPIOA->BSRR = GPIO_BSRR_BS_2;         // Set PA2 high -- turn On powCyc LED
+  // GPIOA->BSRR = GPIO_BSRR_BS_2;         // Set PA2 high -- turn On powCyc LED
+  TOGGLE_PIN(A, 2, HIGH);               // Set PA2 high -- turn On powCyc LED
 
   S_DELAY(428);                         // (428*2+4)*512/8000 = ~55.04 ms
 
   while(adc_read_vload() > 50);         // wait till vload rail drops below 50mv
   
-  GPIOA->BSRR = GPIO_BSRR_BR_2;         // Set PA2 low  -- turn Off powCyc LED
+  // GPIOA->BSRR = GPIO_BSRR_BR_2;         // Set PA2 low  -- turn Off powCyc LED
+  TOGGLE_PIN(A, 2, LOW);                // Set PA2 low  -- turn Off powCyc LED
 
   // turn DC-DC converter on (pull down PA0)
   GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA
@@ -100,9 +94,7 @@ uint8_t powerCycle(void) {
     PIN_CONF(PIN(10), PINV_OUTPUT)      // PA10 OUT -- I2C_SDA (LOW)
   );
 
-  // wait till VDD becomes high
-  
-  check_vdd();
+  check_vdd();                          // wait till VDD becomes high
 
   GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA in analog mode
 #ifndef SWD_DISABLED
@@ -112,9 +104,10 @@ uint8_t powerCycle(void) {
     0
   );
 
-  GPIOF->BRR = GPIO_BRR_BR_0;          // set PF0 LOW to turn load switch ON
+  // GPIOF->BRR = GPIO_BRR_BR_0;          // set PF0 LOW to turn load switch ON
+  TOGGLE_PIN(F, 0, LOW);                // Set PF0 low  -- turn Off powCyc LED  
   
-  while (adc_read_vload() < 240);      // ensure vload rail is HIGH
+  while (adc_read_vload() < 240);       // ensure vload rail is HIGH enough
 
   RCC->AHBENR = (     // prune the clock
 #ifndef SWD_DISABLED
@@ -124,10 +117,6 @@ uint8_t powerCycle(void) {
 #endif
     0
   );
-  
-  nvStatus |= NV_LSI_CALIBRATION_REQ; // set LSI calibration request
-
-  return 0;
 }  
 
 void instant_standby(void) {

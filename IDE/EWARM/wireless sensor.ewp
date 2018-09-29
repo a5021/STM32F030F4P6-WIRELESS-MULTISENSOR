@@ -1747,7 +1747,7 @@
                 </option>
                 <option>
                     <name>IlinkDefines</name>
-                    <state></state>
+                    <state>NDEBUG</state>
                 </option>
                 <option>
                     <name>IlinkConfigDefines</name>
@@ -1938,7 +1938,7 @@
                 </option>
                 <option>
                     <name>IlinkOptExceptionsAllow</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>IlinkOptExceptionsForce</name>

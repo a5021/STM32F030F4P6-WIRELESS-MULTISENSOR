@@ -348,7 +348,17 @@
         
 #define NRF24_SET_DATA_RATE_2M() \
           nrf_write_register(RF_SETUP, NRF24_DATA_RATE_2M)
-            
+        
+/*
+
+Page 30 of nRF24L01+ Product Specification:
+
+In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled. 
+In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with 
+DPL enabled must have the DPL_P0 bit in DYNPD set.
+
+*/
+
 #define NRF24_SET_FEATURE(FT) \
           NRF_WRITE_REG(FEATURE, FT)
             
@@ -414,7 +424,7 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
             0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
             1 * NRF24_CONFIG_PWR_UP    |  /* turn power on                 */\
             1 * NRF24_CONFIG_EN_CRC    |  /* enable CRC                    */\
-            0 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
+            1 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
             1 * NRF24_CONFIG_MAX_RT    |  /* disable MAX_RT flag           */\
             0 * NRF24_CONFIG_TX_DS     |  /* enable "TX Data Sent" flag    */\
             1 * NRF24_CONFIG_RX_DR        /* disable "RX Data Ready" flag  */\
@@ -425,7 +435,7 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
             0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
             0 * NRF24_CONFIG_PWR_UP    |  /* turn power off                */\
             1 * NRF24_CONFIG_EN_CRC    |  /* enable CRC                    */\
-            0 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
+            1 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
             1 * NRF24_CONFIG_MAX_RT    |  /* disable MAX_RT flag           */\
             1 * NRF24_CONFIG_TX_DS     |  /* disable "TX Data Sent" flag   */\
             1 * NRF24_CONFIG_RX_DR        /* disable "RX Data Ready" flag  */\
