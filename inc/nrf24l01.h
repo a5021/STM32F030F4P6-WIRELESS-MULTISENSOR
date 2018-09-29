@@ -304,19 +304,8 @@
 #define NRF24_EN_PAYLOAD_NOACK     NRF24_FEATURE_EN_ACK_PAY
 #define NRF24_EN_DYN_PAYLOAD       NRF24_FEATURE_EN_DPL
 
-// #define SET_HIGH                  GPIO_BSRR_BS_
-// #define SET_LOW                   GPIO_BSRR_BR_
-
-// #define GLUE2(A, B)               A##B
-// #define GLUE(A, B)                GLUE2(A, B)
-
 #define CSN(STATE)                 GPIOA->BSRR = GLUE(STATE, 4)
 #define CE(STATE)                  GPIOA->BSRR = GLUE(STATE, 3)
-
-// #define CSN_LOW()                  GPIOA->BSRR = GPIO_BSRR_BR_4
-// #define CSN_HIGH()                 GPIOA->BSRR = GPIO_BSRR_BS_4
-// #define CE_LOW()                   GPIOA->BSRR = GPIO_BSRR_BR_3
-// #define CE_HIGH()                  GPIOA->BSRR = GPIO_BSRR_BS_3
 
 #define  NRF24_AUTO_ACK_DISABLE    ((uint8_t)(0))
 
