@@ -32,7 +32,6 @@ void turnRegulatorOn(void) {
 
 void turnRegulatorOff(void) {
 
-  // GPIOA->BSRR = GPIO_BSRR_BS_0;            // set PA0 to 1
   TOGGLE_PIN(A, 0, HIGH);
   
   GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA
@@ -73,14 +72,9 @@ void powerCycle(void) {
     PIN_CONF(PIN(10), PINV_OUTPUT)      // PA10 OUT -- I2C_SDA (LOW)
   );
   
-  // GPIOA->BSRR = GPIO_BSRR_BS_2;         // Set PA2 high -- turn On powCyc LED
   TOGGLE_PIN(A, 2, HIGH);               // Set PA2 high -- turn On powCyc LED
-
   S_DELAY(428);                         // (428*2+4)*512/8000 = ~55.04 ms
-
   while(adc_read_vload() > 50);         // wait till vload rail drops below 50mv
-  
-  // GPIOA->BSRR = GPIO_BSRR_BR_2;         // Set PA2 low  -- turn Off powCyc LED
   TOGGLE_PIN(A, 2, LOW);                // Set PA2 low  -- turn Off powCyc LED
 
   // turn DC-DC converter on (pull down PA0)
@@ -104,12 +98,11 @@ void powerCycle(void) {
     0
   );
 
-  // GPIOF->BRR = GPIO_BRR_BR_0;          // set PF0 LOW to turn load switch ON
-  TOGGLE_PIN(F, 0, LOW);                // Set PF0 low  -- turn Off powCyc LED  
+  TOGGLE_PIN(F, 0, LOW);                // Set PF0 LOW to turn load switch ON
   
   while (adc_read_vload() < 240);       // ensure vload rail is HIGH enough
 
-  RCC->AHBENR = (     // prune the clock
+  RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_FLITFEN    |
     RCC_AHBENR_SRAMEN     |
@@ -123,7 +116,7 @@ void instant_standby(void) {
   RCC->APB1ENR = 0;
   RCC->APB2ENR = 0;
 
-  RCC->AHBENR = (     // prune the clock
+  RCC->AHBENR = (
 #ifndef SWD_DISABLED
     RCC_AHBENR_SRAMEN     | 
     RCC_AHBENR_FLITFEN    | 

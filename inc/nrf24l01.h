@@ -358,7 +358,8 @@ DPL enabled must have the DPL_P0 bit in DYNPD set.
           if((uint8_t)SPI1->DR);                                             \
           CSN(HIGH)
 
-#define SPI_WRITE(OP, R_NO) *(uint8_t*)&SPI1->DR = (uint8_t)(OP | (REGISTER_MASK & R_NO));
+#define SPI_DATAREG  *(uint8_t*)&SPI1->DR
+#define SPI_WRITE(OP, R_NO) SPI_DATAREG = (uint8_t)(OP | (REGISTER_MASK & R_NO));
 
 __STATIC_INLINE uint8_t nrf_w_reg(uint8_t regNo, uint8_t regVal) {
   CSN(LOW);
@@ -366,7 +367,7 @@ __STATIC_INLINE uint8_t nrf_w_reg(uint8_t regNo, uint8_t regVal) {
   SPI_WRITE(W_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
   uint8_t r = (uint8_t)SPI1->DR;
-  *(uint8_t*)&SPI1->DR = regVal;
+  SPI_DATAREG = regVal;
   SPI_SLEEP_WHILE_XFER();
   if((uint8_t)SPI1->DR);
   CSN(HIGH);
@@ -379,7 +380,7 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
   SPI_WRITE(R_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
   if((uint8_t)SPI1->DR);
-  *(uint8_t*)&SPI1->DR = NOP;
+  SPI_DATAREG = NOP;
   SPI_SLEEP_WHILE_XFER();
   CSN(HIGH);
   return (uint8_t)SPI1->DR;
@@ -387,10 +388,10 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
 
 #define NRF_WRITE_REG(REG, VAL)                                              \
           CSN(LOW);                                                          \
-          *(uint8_t*)&SPI1->DR = (uint8_t)(W_REGISTER | (REGISTER_MASK & (REG)));\
+          SPI_WRITE(W_REGISTER, (REG));                                      \
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
-          *(uint8_t*)&SPI1->DR = (uint8_t)(VAL);                             \
+          SPI_DATAREG = (uint8_t)(VAL);                                      \
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
           CSN(HIGH)
@@ -398,12 +399,12 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
 #define NRF24_WRITE_PAYLOAD(PL, SIZE)                                        \
           CSN(LOW);                                                          \
                   /* - send the command: WRITE_PAYLOAD_WITH_NO_ACK - */      \
-          *(uint8_t*)&SPI1->DR = (uint8_t)(W_TX_PAYLOAD_NOACK);              \
+          SPI_DATAREG  = (uint8_t)(W_TX_PAYLOAD_NOACK);                      \
           SPI_SLEEP_WHILE_XFER();                                            \
           if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
                   /* ---------- transfer payload ---------------*/           \
           for (uint8_t i = 0; i < SIZE; i++) {                               \
-            *(uint8_t*)&SPI1->DR = ((uint8_t *)(&PL))[i];                    \
+            SPI_DATAREG = ((uint8_t *)(&PL))[i];                             \
             SPI_SLEEP_WHILE_XFER();                                          \
             if((uint8_t)SPI1->DR); /* dummy read to reset flags */           \
           }                                                                  \
