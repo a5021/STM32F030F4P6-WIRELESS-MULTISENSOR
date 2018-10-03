@@ -1,7 +1,7 @@
 TARGET = STM32F030-WIRELESS-MULTISENSOR
 
 DEBUG = 0
-OPT = -Ofast -flto
+OPT = -Ofast -g0 -flto
 
 BUILD_DIR = _build
 
@@ -9,8 +9,7 @@ C_SOURCES =  \
 ../../src/adc.c \
 ../../src/bmp180.c \
 ../../src/control.c \
-../../main.c \
-../../drivers/src/system_stm32f0xx.c 
+../../main.c
 
 ASM_SOURCES = startup_stm32f031x6.s
 

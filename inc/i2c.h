@@ -197,11 +197,75 @@ __STATIC_INLINE void i2c_enable(void) {
     PIN_CONF(PIN(10), PINV_ALT_FUNC)    // PA10: AF4 -- I2C_SDA
   );
 }
-
+/*
 __STATIC_INLINE void sleep_delay(uint16_t cnt) {
   i2c_disable();
   S_DELAY(cnt);  // (cnt*2+4)*512/8000 ms
   i2c_enable();
+}
+*/
+__STATIC_INLINE bool i2c_sleep(uint32_t cnt) {
+  I2C1->CR1 &= ~I2C_CR1_PE;             // I2C1 Peripheral disable
+
+  GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA
+#ifndef SWD_DISABLED
+    PIN_CONF(PIN(13), PINV_ALT_FUNC) |  // PA13 AF0 -- SYS_SWDIO
+    PIN_CONF(PIN(14), PINV_ALT_FUNC) |  // PA14 AF0 -- SYS_SWDCLK
+#endif
+    0
+  );
+
+  RCC->AHBENR = (
+#ifndef SWD_DISABLED
+    RCC_AHBENR_FLITFEN      | // enable clock for FLASH in sleep mode to allow debug
+    RCC_AHBENR_SRAMEN       | // enable clock for SRAM in sleep mode to allow debug
+    RCC_AHBENR_GPIOAEN      | // enable clock for GPIOA
+#endif
+    0                         // disable clock for GPIOA
+  );
+
+  RCC->APB1ENR = RCC_APB1ENR_TIM14EN;  // disable clock for I2C1
+
+  TIM14->CR1 = TIM_CR1_URS;
+  TIM14->PSC = cnt - 1;
+  TIM14->ARR = 1;
+  TIM14->EGR = TIM_EGR_UG;
+  TIM14->DIER = TIM_DIER_UIE;
+  TIM14->SR = 0;
+  NVIC_ClearPendingIRQ(TIM14_IRQn);
+
+  uint32_t rcc_cfgr = RCC->CFGR;
+  RUN_MCU_AT(LOWEST_FREQ);
+  TIM14->CR1 = TIM_CR1_CEN;   // Run timer
+
+  __WFE();
+
+  RCC->CFGR = rcc_cfgr;
+  RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;
+  RCC->APB1ENR = RCC_APB1ENR_I2C1EN;    // enable clock for I2C1
+  i2c_enable();
+  RCC->APB1RSTR = 0;
+
+//  RCC->APB1ENR = RCC_APB1ENR_I2C1EN;    // enable clock for I2C1
+//  I2C1->CR1 |= I2C_CR1_PE;              // enable I2C1 Peripheral
+//
+//  RCC->AHBENR = (
+//#ifndef SWD_DISABLED
+//    RCC_AHBENR_FLITFEN      | // enable clock for FLASH in sleep mode to allow debug
+//    RCC_AHBENR_SRAMEN       | // enable clock for SRAM in sleep mode to allow debug
+//#endif
+//    RCC_AHBENR_GPIOAEN        // enable clock for GPIOA
+//  );
+//
+//  GPIOA->MODER = ANALOG_MODE_FOR_ALL_PINS - ( // Configure GPIOA
+//#ifndef SWD_DISABLED
+//    PIN_CONF(PIN(13), PINV_ALT_FUNC) |  // PA13: AF0 -- SYS_SWDIO
+//    PIN_CONF(PIN(14), PINV_ALT_FUNC) |  // PA14: AF0 -- SYS_SWDCLK
+//#endif
+//    PIN_CONF(PIN(9), PINV_ALT_FUNC)  |  // PA9:  AF4 -- I2C_SCL
+//    PIN_CONF(PIN(10), PINV_ALT_FUNC)    // PA10: AF4 -- I2C_SDA
+//  );
+  return true;
 }
 
 #ifndef I2C_CR1_DNF

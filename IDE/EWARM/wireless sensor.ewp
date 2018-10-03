@@ -11,7 +11,7 @@
             <name>General</name>
             <archiveVersion>3</archiveVersion>
             <data>
-                <version>30</version>
+                <version>31</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>1</debug>
                 <option>
@@ -66,7 +66,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.22.1.15696</state>
+                    <state>8.30.2.18207</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -112,7 +112,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -204,6 +204,11 @@
                     <name>TrustZone</name>
                     <state>0</state>
                 </option>
+                <option>
+                    <name>TrustZoneModes</name>
+                    <version>0</version>
+                    <state>0</state>
+                </option>
             </data>
         </settings>
         <settings>
@@ -219,7 +224,8 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>STM32F031x6</state>
+                    <state>STM32F031x6
+</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -280,7 +286,7 @@
                 <option>
                     <name>CCAllowList</name>
                     <version>1</version>
-                    <state>11111110</state>
+                    <state>00000000</state>
                 </option>
                 <option>
                     <name>CCDebugInfo</name>
@@ -362,7 +368,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>3</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -371,7 +377,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>3</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CompilerMisraRules98</name>
@@ -680,7 +686,7 @@
             <name>ILINK</name>
             <archiveVersion>0</archiveVersion>
             <data>
-                <version>20</version>
+                <version>21</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>1</debug>
                 <option>
@@ -944,7 +950,7 @@
                 </option>
                 <option>
                     <name>IlinkStackControlFile</name>
-                    <state>E:\STM32\STM32F0\WIRELESS SENSOR REV 2b\2332324</state>
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkStackCallGraphFile</name>
@@ -992,6 +998,10 @@
                     <name>IlinkLocaleSelect</name>
                     <state>1</state>
                 </option>
+                <option>
+                    <name>IlinkTrustzoneImportLibraryOut</name>
+                    <state>wireless sensor_import_lib.o</state>
+                </option>
             </data>
         </settings>
         <settings>
@@ -1031,7 +1041,7 @@
             <name>General</name>
             <archiveVersion>3</archiveVersion>
             <data>
-                <version>30</version>
+                <version>31</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>0</debug>
                 <option>
@@ -1086,7 +1096,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.22.1.15696</state>
+                    <state>8.30.2.18207</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -1132,7 +1142,7 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
@@ -1141,7 +1151,7 @@
                 </option>
                 <option>
                     <name>OGUseCmsis</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OGUseCmsisDspLib</name>
@@ -1222,6 +1232,11 @@
                 </option>
                 <option>
                     <name>TrustZone</name>
+                    <state>0</state>
+                </option>
+                <option>
+                    <name>TrustZoneModes</name>
+                    <version>0</version>
                     <state>0</state>
                 </option>
             </data>
@@ -1366,9 +1381,9 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state>$PROJ_DIR$\inc</state>
-                    <state>$PROJ_DIR$\drivers</state>
-                    <state>$PROJ_DIR$\drivers\inc</state>
+                    <state>$PROJ_DIR$\..\..\inc</state>
+                    <state>$PROJ_DIR$\..\..\drivers</state>
+                    <state>$PROJ_DIR$\..\..\drivers\inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1702,7 +1717,7 @@
             <name>ILINK</name>
             <archiveVersion>0</archiveVersion>
             <data>
-                <version>20</version>
+                <version>21</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>0</debug>
                 <option>
@@ -1747,7 +1762,7 @@
                 </option>
                 <option>
                     <name>IlinkDefines</name>
-                    <state>NDEBUG</state>
+                    <state></state>
                 </option>
                 <option>
                     <name>IlinkConfigDefines</name>
@@ -2014,6 +2029,10 @@
                     <name>IlinkLocaleSelect</name>
                     <state>1</state>
                 </option>
+                <option>
+                    <name>IlinkTrustzoneImportLibraryOut</name>
+                    <state>wireless sensor_import_lib.o</state>
+                </option>
             </data>
         </settings>
         <settings>
@@ -2059,17 +2078,11 @@
             <file>
                 <name>$PROJ_DIR$\..\..\drivers\inc\stm32f0xx.h</name>
             </file>
-            <file>
-                <name>$PROJ_DIR$\drivers\system_stm32f0xx.h</name>
-            </file>
         </group>
         <group>
             <name>src</name>
             <file>
                 <name>$PROJ_DIR$\..\..\drivers\src\startup_stm32f031x6.s</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\drivers\src\system_stm32f0xx.c</name>
             </file>
         </group>
     </group>

@@ -95,11 +95,8 @@
 
 #define W_TX_PAYLOAD_NOACK         0xB0
 
-/* Non-P omissions */
-#define LNA_HCURR                  0
-
 /* P model memory Map */
-#define RPD                        0x09
+// #define RPD                        0x09
 
 /* P model bit Mnemonics */
 #define RF_DR_LOW                  5
@@ -117,7 +114,7 @@
 #define NRF24_CONFIG_TX_DS         (1 << TX_DS)
 #define NRF24_CONFIG_RX_DR         (1 << RX_DR)
 
-// 01: EN_AA register -- Enable ‘Auto Acknowledgment’ Function (bits from 0 to 5)
+// 01: EN_AA register -- Enable â€˜Auto Acknowledgmentâ€™ Function (bits from 0 to 5)
 // ==============================================================================
 #define NRF24_ENAA_P0              (1 << ENAA_P0)
 #define NRF24_ENAA_P1              (1 << ENAA_P1)
@@ -141,7 +138,7 @@
 //            '00' - Illegal
 //            '01' - 3 bytes
 //            '10' - 4 bytes
-//            '11' – 5 bytes
+//            '11' â€“ 5 bytes
 // LSByte is used if address width is below 5 bytes
 //
 #define NRF24_SETUP_AW_0           (1 << 0)
@@ -155,10 +152,10 @@
 // ======================================================================
 // --
 //     Auto Retransmit Count
-// ‘0000’ –Re-Transmit disabled
-// ‘0001’ – Up to 1 Re-Transmit on fail of AA
-// ……
-// ‘1111’ – Up to 15 Re-Transmit on fail of AA
+// â€˜0000â€™ â€“Re-Transmit disabled
+// â€˜0001â€™ â€“ Up to 1 Re-Transmit on fail of AA
+// â€¦â€¦
+// â€˜1111â€™ â€“ Up to 15 Re-Transmit on fail of AA
 //
 #define NRF24_SETUP_RETR_ARC_0     (1 << 0)
 #define NRF24_SETUP_RETR_ARC_1     (1 << 1)
@@ -166,11 +163,11 @@
 #define NRF24_SETUP_RETR_ARC_3     (1 << 3)
 //
 //  Auto Retransmit Delay
-//  ‘0000’ – Wait 250µS
-//  ‘0001’ – Wait 500µS
-//  ‘0010’ – Wait 750µS
-//  ……..
-//  ‘1111’ – Wait 4000µS
+//  â€˜0000â€™ â€“ Wait 250ÂµS
+//  â€˜0001â€™ â€“ Wait 500ÂµS
+//  â€˜0010â€™ â€“ Wait 750ÂµS
+//  â€¦â€¦..
+//  â€˜1111â€™ â€“ Wait 4000ÂµS
 //  (Delay defined from end of transmission to start of
 //  next transmission)
 //
@@ -185,21 +182,21 @@
 // 06: RF_SETUP -- RF Setup Register (bits from 0 to 6)
 // ====================================================
 //  Set RF output power in TX mode
-//  '00' – -18dBm
-//  '01' – -12dBm
-//  '10' – -6dBm
-//  '11' – 0dBm
+//  '00' â€“ -18dBm
+//  '01' â€“ -12dBm
+//  '10' â€“ -6dBm
+//  '11' â€“ 0dBm
 //
 #define NRF24_RF_SETUP_RF_PWR_0    (1 << 0)
 #define NRF24_RF_SETUP_RF_PWR_1    (1 << 1)
 //  Select between the high speed data rates. This bit
-//  is don’t care if RF_DR_LOW is set.
+//  is donâ€™t care if RF_DR_LOW is set.
 //  Encoding:
 //  [RF_DR_LOW, RF_DR_HIGH]:
-//  ‘00’ – 1Mbps
-//  ‘01’ – 2Mbps
-//  ‘10’ – 250kbps
-//  ‘11’ – Reserved
+//  â€˜00â€™ â€“ 1Mbps
+//  â€˜01â€™ â€“ 2Mbps
+//  â€˜10â€™ â€“ 250kbps
+//  â€˜11â€™ â€“ Reserved
 //
 #define NRF24_RF_SETUP_RF_DR_HIGH  (1 << RF_DR_HIGH)
 #define NRF24_RF_SETUP_PLL_LOCK    (1 << PLL_LOCK)
@@ -323,6 +320,12 @@
 #define  NRF24_TX_POWER_NORMAL     NRF24_OUTPUT_POWER_6DBM
 #define  NRF24_TX_POWER_HIGH       NRF24_OUTPUT_POWER_0DBM
 
+#define SPI_DATAREG         *(uint8_t*)&SPI1->DR
+#define SPI_WRITE(OP, R_NO) SPI_DATAREG = (uint8_t)(OP | (REGISTER_MASK & R_NO))
+// #define SPI_DUMMY_READ()    if((uint8_t)SPI1->DR) {;}
+// #define SPI_DUMMY_READ()    if(SPI1->DR) {;}
+#define SPI_DUMMY_READ()    (SPI1->DR)
+
 #define NRF24_SET_ADDR_WIDTH(ADDR_WIDTH) \
           NRF_WRITE_REG(SETUP_AW, (ADDR_WIDTH))
 
@@ -335,16 +338,6 @@
 #define NRF24_SETUP_RADIO(TX_POWER, DATA_RATE) \
           NRF_WRITE_REG(RF_SETUP, ((DATA_RATE) | (TX_POWER)))
 
-/*
-
-Page 30 of nRF24L01+ Product Specification:
-
-In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled.
-In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
-DPL enabled must have the DPL_P0 bit in DYNPD set.
-
-*/
-
 #define NRF24_SET_FEATURE(FT) \
           NRF_WRITE_REG(FEATURE, FT)
 
@@ -353,33 +346,28 @@ DPL enabled must have the DPL_P0 bit in DYNPD set.
 
 #define NRF_WRITE_CMD(CMD)                                                   \
           CSN(LOW);                                                          \
-          *(uint8_t*)&SPI1->DR = (uint8_t)(CMD);                             \
+          SPI_DATAREG = (uint8_t)(CMD);                                      \
           SPI_SLEEP_WHILE_XFER();                                            \
-          if((uint8_t)SPI1->DR);                                             \
+          SPI_DUMMY_READ();                                                  \
           CSN(HIGH)
-
-#define SPI_DATAREG  *(uint8_t*)&SPI1->DR
-#define SPI_WRITE(OP, R_NO) SPI_DATAREG = (uint8_t)(OP | (REGISTER_MASK & R_NO));
 
 __STATIC_INLINE uint8_t nrf_w_reg(uint8_t regNo, uint8_t regVal) {
   CSN(LOW);
-  // *(uint8_t*)&SPI1->DR = (uint8_t)(W_REGISTER | (REGISTER_MASK & regNo));
   SPI_WRITE(W_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
   uint8_t r = (uint8_t)SPI1->DR;
   SPI_DATAREG = regVal;
   SPI_SLEEP_WHILE_XFER();
-  if((uint8_t)SPI1->DR);
+  SPI_DUMMY_READ();
   CSN(HIGH);
   return r;
 }
 
 __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
   CSN(LOW);
-  // *(uint8_t*)&SPI1->DR = (uint8_t)(R_REGISTER | (REGISTER_MASK & regNo));
   SPI_WRITE(R_REGISTER, regNo);
   SPI_SLEEP_WHILE_XFER();
-  if((uint8_t)SPI1->DR);
+  SPI_DUMMY_READ();
   SPI_DATAREG = NOP;
   SPI_SLEEP_WHILE_XFER();
   CSN(HIGH);
@@ -390,10 +378,10 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
           CSN(LOW);                                                          \
           SPI_WRITE(W_REGISTER, (REG));                                      \
           SPI_SLEEP_WHILE_XFER();                                            \
-          if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
+          SPI_DUMMY_READ();        /* dummy read to reset flags */           \
           SPI_DATAREG = (uint8_t)(VAL);                                      \
           SPI_SLEEP_WHILE_XFER();                                            \
-          if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
+          SPI_DUMMY_READ();        /* dummy read to reset flags */           \
           CSN(HIGH)
 
 #define NRF24_WRITE_PAYLOAD(PL, SIZE)                                        \
@@ -401,42 +389,42 @@ __STATIC_INLINE uint8_t nrf_r_reg(uint8_t regNo) {
                   /* - send the command: WRITE_PAYLOAD_WITH_NO_ACK - */      \
           SPI_DATAREG  = (uint8_t)(W_TX_PAYLOAD_NOACK);                      \
           SPI_SLEEP_WHILE_XFER();                                            \
-          if((uint8_t)SPI1->DR);   /* dummy read to reset flags */           \
+          SPI_DUMMY_READ();        /* dummy read to reset flags */           \
                   /* ---------- transfer payload ---------------*/           \
           for (uint8_t i = 0; i < SIZE; i++) {                               \
             SPI_DATAREG = ((uint8_t *)(&PL))[i];                             \
             SPI_SLEEP_WHILE_XFER();                                          \
-            if((uint8_t)SPI1->DR); /* dummy read to reset flags */           \
+            SPI_DUMMY_READ();      /* dummy read to reset flags */           \
           }                                                                  \
           CSN(HIGH)
 
-#define NRF24_POWER_UP() \
-          nrf_w_reg(CONFIG, (uint8_t)( /* Turn ON transmitter              */\
-            0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
-            1 * NRF24_CONFIG_PWR_UP    |  /* turn power on                 */\
-            1 * NRF24_CONFIG_EN_CRC    |  /* enable CRC                    */\
-            1 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
-            1 * NRF24_CONFIG_MAX_RT    |  /* disable MAX_RT flag           */\
-            0 * NRF24_CONFIG_TX_DS     |  /* enable "TX Data Sent" flag    */\
-            1 * NRF24_CONFIG_RX_DR        /* disable "RX Data Ready" flag  */\
+#define NRF24_POWER_UP()                  /***    Turn ON transmitter    ***/\
+          nrf_w_reg(CONFIG, (uint8_t)(    /*                               */\
+            0 * NRF24_CONFIG_PRIM_RX   |  /* Mode :      0 = TX,  1 = RX   */\
+            1 * NRF24_CONFIG_PWR_UP    |  /* Power:      0 = OFF, 1 = ON   */\
+            1 * NRF24_CONFIG_EN_CRC    |  /* CRC  :      0 = OFF, 1 = ON   */\
+            1 * NRF24_CONFIG_CRCO      |  /* CRC Bits:   0 = 8,   1 = 16   */\
+            1 * NRF24_CONFIG_MAX_RT    |  /* MAX_RT_IRQ: 0 = ON,  1 = OFF  */\
+            0 * NRF24_CONFIG_TX_DS     |  /* TX IRQ:     0 = ON,  1 = OFF  */\
+            1 * NRF24_CONFIG_RX_DR        /* RX IRQ:     0 = ON,  1 = OFF  */\
           ))
 
-#define NRF24_POWER_DOWN() \
-          nrf_w_reg(CONFIG, (uint8_t)( /* Turn OFF transmitter             */\
-            0 * NRF24_CONFIG_PRIM_RX   |  /* select TX mode                */\
-            0 * NRF24_CONFIG_PWR_UP    |  /* turn power off                */\
-            1 * NRF24_CONFIG_EN_CRC    |  /* enable CRC                    */\
-            1 * NRF24_CONFIG_CRCO      |  /* don't use 16-bit CRC          */\
-            1 * NRF24_CONFIG_MAX_RT    |  /* disable MAX_RT flag           */\
-            1 * NRF24_CONFIG_TX_DS     |  /* disable "TX Data Sent" flag   */\
-            1 * NRF24_CONFIG_RX_DR        /* disable "RX Data Ready" flag  */\
+#define NRF24_POWER_DOWN()                /***    Turn OFF transmitter   ***/\
+          nrf_w_reg(CONFIG, (uint8_t)(    /*                               */\
+            0 * NRF24_CONFIG_PRIM_RX   |  /* Mode :      0 = TX,  1 = RX   */\
+            0 * NRF24_CONFIG_PWR_UP    |  /* Power:      0 = OFF, 1 = ON   */\
+            1 * NRF24_CONFIG_EN_CRC    |  /* CRC  :      0 = OFF, 1 = ON   */\
+            1 * NRF24_CONFIG_CRCO      |  /* CRC Bits:   0 = 8,   1 = 16   */\
+            1 * NRF24_CONFIG_MAX_RT    |  /* MAX_RT_IRQ: 0 = ON,  1 = OFF  */\
+            1 * NRF24_CONFIG_TX_DS     |  /* TX IRQ:     0 = ON,  1 = OFF  */\
+            1 * NRF24_CONFIG_RX_DR        /* RX IRQ:     0 = ON,  1 = OFF  */\
           ))
 
-#define NRF24_RESET_STATUS() \
-          nrf_w_reg(STATUS, (uint8_t)( /* clear status bits */               \
-            1 * NRF24_STATUS_MAX_RT    |                                     \
-            1 * NRF24_STATUS_TX_DS     |                                     \
-            1 * NRF24_STATUS_RX_DR                                           \
+#define NRF24_RESET_STATUS()              /***    Clear status bits      ***/\
+          nrf_w_reg(STATUS, (uint8_t)(    /*                               */\
+            1 * NRF24_STATUS_MAX_RT    |  /* Reset MAX_RT Flag and IRQ     */\
+            1 * NRF24_STATUS_TX_DS     |  /* Reset TX_DS Flag and IRQ      */\
+            1 * NRF24_STATUS_RX_DR        /* Reset RX_DR Flag and IRQ      */\
           ))
 
 #define TX_FIFO         FLUSH_TX

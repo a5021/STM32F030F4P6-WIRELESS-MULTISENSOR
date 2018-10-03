@@ -12,10 +12,9 @@
 
 extern uint16_t vref_buf[], ts_buf[], v_buf[];
 
-
-__STATIC_INLINE uint32_t average16(uint16_t b[]) {
+__STATIC_INLINE uint32_t average(uint16_t b[]) {
   uint32_t s = 0;
-    
+
   for (uint32_t i = 0; i < ADC_BUF_SIZE; i++) {
     s += b[i];
   }
@@ -23,15 +22,15 @@ __STATIC_INLINE uint32_t average16(uint16_t b[]) {
 }
 
 __STATIC_INLINE uint32_t adc2voltage(uint16_t buf[], uint32_t v_ref) {
-   
-  uint32_t avr = average16(buf);  /* average adc data             */
+
+  uint32_t avr = average(buf);    /* average adc data             */
 
   if (4095UL == avr) {            /* check if it is equal to VREF */
     return v_ref;                 /* return VREF value            */
   }                               /* recalc v_bat value           */
   avr *= v_ref;                   /* v = adc * V_REF / 4095       */
   avr /= 4095UL;
-                                                           
+
   return avr;
 }
 
