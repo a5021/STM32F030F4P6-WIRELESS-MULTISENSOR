@@ -18,16 +18,15 @@
 int main() {
 
   uint32_t adc_vcc,
-           adc_vbat;
+           adc_vbat,
+           bh1750_lumi,
+           wuTime;
 
   int32_t  adc_temp,
            si7021_temp,
            si7021_humi,
            bmp180_temp,
            bmp180_press;
-
-  uint32_t bh1750_lumi,
-           wuTime;
 
   bool     bmp180_ok,
            si7021_ok,
@@ -230,7 +229,6 @@ int main() {
     adc_temp = average(ts_buf) * adc_vcc / VDD_CALIB - TS_CAL_30;
     adc_temp = adc_temp * 80 / (int32_t) (TS_CAL_110 - TS_CAL_30) + 30;
     adc_vbat = adc2voltage(v_buf, adc_vcc);  // compute vbat
-
 
   /* * * * * * *   Configure wake up time   * * * * * * * * * * * */
 
@@ -571,7 +569,7 @@ int main() {
   __WFE();                               // enter standby
 
   /*************** !!! Should never get here !!! ******************************/
-  
+
   NVIC_SystemReset();                    // Invoke System Reset
 }
 
