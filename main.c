@@ -17,8 +17,6 @@
 
 int main() {
 
-  // static uint8_t nSt;
-
   uint32_t adc_vcc,
            adc_vbat;
 
@@ -120,9 +118,8 @@ int main() {
   bh1750_ok = (      // read BH1750 sensor
     bh1750_ok                                            &&  // if conv started
     !(IS_BH1750_RES_HIGH() && (s_delay(936), false))     &&  // (936*2+4)*512/8000=~120 ms
-    (i2c_enable(), true)                                 &&  // get luminosity
-    bh1750_get_result(&bh1750_lumi)                      // &&
-    // (i2c_disable(), true)
+    (i2c_enable(), true)                                 &&  // enable i2c
+    bh1750_get_result(&bh1750_lumi)                          // get luminosity
   );
 
   i2c_disable();     // Stop all I2C activity
@@ -433,7 +430,7 @@ int main() {
   /****************************************************************************/
 
   if (nrf_ok) {
-    //RUN_MCU_AT(ONE_MHZ);
+    RUN_MCU_AT(HF_MHZ);        // slow down CPU
     __WFE();                   // sleep till NRF's IRQ appears
   } else {
     S_DELAY(2);                // (2*2 + 4) * 512 / 8000 = 512us
