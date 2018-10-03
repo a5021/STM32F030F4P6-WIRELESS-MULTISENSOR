@@ -166,23 +166,6 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
   return (uint32_t) (((PREDIV_A - 1) << 16) | (preDiv_S + 1));
 }
 
-__STATIC_INLINE bool almostTheSame(uint32_t v1, uint32_t v2, uint32_t diff) {
-  if (v1 == v2) return true;
-  if (v1 > v2) {
-    if (diff < (v1 - v2)) {
-      return false;
-    } else {
-      return true;
-    }
-  } else {
-    if (diff < (v2 - v1)) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-}
-
 __STATIC_INLINE uint32_t crc32_prom(uint32_t s[]) {
 
   RCC->AHBENR |= RCC_AHBENR_CRCEN;
