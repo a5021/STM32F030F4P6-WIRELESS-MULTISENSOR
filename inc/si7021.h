@@ -1,8 +1,6 @@
 #ifndef __SI7021_INCLUDED
 #define __SI7021_INCLUDED
 
-#include "i2c.h"
-
 #define SI7021_I2C_ADDRESS              0x40
 
 #define SI7021_MEAS_HUMI_HOLD           0xE5

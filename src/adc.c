@@ -228,16 +228,16 @@ uint32_t adc_read_vload(void) {
     RCC_AHBENR_SRAMEN
   );
 
-  RCC->APB2ENR = 0;                      // disable clock for ADC
-  RCC->CR2 &= ~RCC_CR2_HSI14ON;          // stop HSI14 RC oscillator
+  RCC->APB2ENR = 0;                     // disable clock for ADC
+  RCC->CR2 &= ~RCC_CR2_HSI14ON;         // stop HSI14 RC oscillator
 
   uint32_t vref = 0, vload = 0;
   for (uint32_t i = 0; i < ADC_BUF_SIZE; i++) {
     vref += ((uint16_t*)&vref_buf[2])[i];
     vload += v_buf[i];
   }
-  vref = VREFINT_CAL * VDD_CALIB / (vref / 16);
-  vload /= 16;
+  vref = VREFINT_CAL * VDD_CALIB / (vref / ADC_BUF_SIZE);
+  vload /= ADC_BUF_SIZE;
 
   if (4095 == vload) {            /* check if it is equal to VREF */
     return vref;                  /* return VREF value            */

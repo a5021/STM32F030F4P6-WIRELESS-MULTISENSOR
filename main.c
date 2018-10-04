@@ -450,7 +450,7 @@ int main() {
     RCC_AHBENR_GPIOAEN         // enable clock for GPIOA
   );
 
-  NRF24_POWER_DOWN();          // Stop oscillator and go into Power Down mode
+  NRF24_POWER_DOWN();          // Stop oscillator and go into Power Down Mode
 
   /************ Reset NRF24L01's status bits and release IRQ line *************/
 

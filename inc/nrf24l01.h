@@ -322,8 +322,6 @@
 
 #define SPI_DATAREG         *(uint8_t*)&SPI1->DR
 #define SPI_WRITE(OP, R_NO) SPI_DATAREG = (uint8_t)(OP | (REGISTER_MASK & R_NO))
-// #define SPI_DUMMY_READ()    if((uint8_t)SPI1->DR) {;}
-// #define SPI_DUMMY_READ()    if(SPI1->DR) {;}
 #define SPI_DUMMY_READ()    (SPI1->DR)
 
 #define NRF24_SET_ADDR_WIDTH(ADDR_WIDTH) \

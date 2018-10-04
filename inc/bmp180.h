@@ -45,19 +45,19 @@
 
         // Calibration parameters structure
 typedef struct {
-          uint16_t PAD;    // * two padding bytes (not available in bmp180 PROM)
-          int16_t AC1;
-          int16_t AC2;
-          int16_t AC3;
-          uint16_t AC4;
-          uint16_t AC5;
-          uint16_t AC6;
-          int16_t B1;
-          int16_t B2;
-          int16_t MB;
-          int16_t MC;
-          int16_t MD;
-          uint32_t CRC32;  // * checksum (not available in bmp180 PROM)
+          uint16_t  PAD;    // * two padding bytes (not available in bmp180 PROM)
+          int16_t   AC1;
+          int16_t   AC2;
+          int16_t   AC3;
+          uint16_t  AC4;
+          uint16_t  AC5;
+          uint16_t  AC6;
+          int16_t   B1;
+          int16_t   B2;
+          int16_t   MB;
+          int16_t   MC;
+          int16_t   MD;
+          uint32_t  CRC32;  // * checksum (not available in bmp180 PROM)
 } BMP180_Calibration_TypeDef;
 
 typedef struct {
