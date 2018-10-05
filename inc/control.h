@@ -76,7 +76,7 @@ typedef struct {
 #elif defined (__CC_ARM)
 typedef struct {
 #endif
-  
+
   uint32_t tx_status     :1;  //  1
   uint32_t pkt_id        :4;  //  1
   uint32_t sen_status    :1;  //  1
@@ -154,14 +154,13 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
     }
   };
 
-  RCC->APB1ENR = 0;
-  RCC->CFGR = 0;              // Disable LSI as MCO source
+  RCC->APB1ENR = 0;                       // Disable TIM14
+  RCC->CFGR = 0;                          // Disable LSI as MCO source
+  RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;  // Reset TIM14
 
-  preDiv_S = 8000000UL * SAMPLE_NUM / sSum / PREDIV_A;
+  preDiv_S = 8000000UL * SAMPLE_NUM / ((sSum == 0) ? 3040UL : sSum) / PREDIV_A;
 
-  RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;
-  __NOP(); __NOP(); __NOP();
-  RCC->APB1RSTR = 0;
+  RCC->APB1RSTR = 0;                      // Reset done
 
   return (uint32_t) (((PREDIV_A - 1) << 16) | (preDiv_S + 1));
 }
@@ -207,11 +206,11 @@ void turnRegulatorOn(void);
 void turnRegulatorOff(void);
 void powerCycle(void);
 
-#ifndef SWD_DISABLED  
+#ifndef SWD_DISABLED
 __STATIC_INLINE void Configure_DBG(void) {
   /* Enable the peripheral clock of DBG register */
   RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
- 
+
   DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY; // enable debug in standby mode
 }
 #endif

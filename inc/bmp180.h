@@ -118,7 +118,7 @@ __STATIC_INLINE bool bmp180_start_conv(uint8_t conv_type) {
 }
 
 __STATIC_INLINE bool bmp180_get_result(int32_t *r, uint8_t r_type) {
-  uint8_t lsb, msb;
+  // uint8_t lsb, msb;
   
   I2C_CR1_STOP();
   I2C_START_WRITING(BMP180_I2C_ADDRESS, 1, BMP180_ADC_OUT_MSB_REG);
@@ -127,12 +127,12 @@ __STATIC_INLINE bool bmp180_get_result(int32_t *r, uint8_t r_type) {
   I2C_CR1_RX();
   I2C_START_READING(BMP180_I2C_ADDRESS, r_type);
   I2C_SLEEP_UNTIL_RXNE();
-  msb = I2C1->RXDR;
+  uint8_t msb = I2C1->RXDR;
   I2C_SLEEP_UNTIL_RXNE();
   if (r_type == BMP180_TEMP) {
     *r = ((msb << 8) | I2C1->RXDR);
   } else {
-    lsb = I2C1->RXDR;
+    uint8_t lsb = I2C1->RXDR;
     I2C_SLEEP_UNTIL_RXNE();
     *r = ((msb << 16) | (lsb << 8) | I2C1->RXDR);
   }

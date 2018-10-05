@@ -17,13 +17,10 @@
 
 int main() {
 
-  uint32_t adc_vcc,
-           adc_vbat,
-           bh1750_lumi,
+  uint32_t bh1750_lumi,
            wuTime;
 
-  int32_t  adc_temp,
-           si7021_temp,
+  int32_t  si7021_temp,
            si7021_humi,
            bmp180_temp,
            bmp180_press;
@@ -225,10 +222,10 @@ int main() {
   void (*turn_regulator)() = NULL;           // reset switch func ptr
 
   if (adc_ok) {                              // if ADC data is available
-    adc_vcc = VREFINT_CAL * VDD_CALIB / average((uint16_t*)&vref_buf[2]);
-    adc_temp = average(ts_buf) * adc_vcc / VDD_CALIB - TS_CAL_30;
+    uint32_t adc_vcc = VREFINT_CAL * VDD_CALIB / average((uint16_t*)&vref_buf[2]);
+    int32_t adc_temp = average(ts_buf) * adc_vcc / VDD_CALIB - TS_CAL_30;
     adc_temp = adc_temp * 80 / (int32_t) (TS_CAL_110 - TS_CAL_30) + 30;
-    adc_vbat = adc2voltage(v_buf, adc_vcc);  // compute vbat
+    uint32_t adc_vbat = adc2voltage(v_buf, adc_vcc);  // compute vbat
 
   /* * * * * * *   Configure wake up time   * * * * * * * * * * * */
 
@@ -312,7 +309,7 @@ int main() {
   }
 
 #ifdef USE_EXT_CODE
-  csr = (uint8_t)((csr >> 24) | ((csr & RCC_CSR_V18PWRRSTF) == RCC_CSR_V18PWRRSTF) ? 0 : 1);
+  csr = (uint8_t)((csr >> 24) | (((csr & RCC_CSR_V18PWRRSTF) == RCC_CSR_V18PWRRSTF) ? 0 : 1);
   if (csr != 0) {
     P_ARR[10] = csr;  //payload.ext_code = csr;
   }
