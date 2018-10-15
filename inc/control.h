@@ -71,10 +71,10 @@
 
 #ifdef __ICCARM__
 typedef __packed struct {
-#elif defined (__GNUC__)
+#elif defined(__GNUC__) || defined(__CC_ARM)
 typedef struct {
-#elif defined (__CC_ARM)
-typedef struct {
+#else
+  #error Unknown compiler
 #endif
 
   uint32_t tx_status     :1;  //  1
@@ -96,10 +96,10 @@ typedef struct {
 
 #ifdef __ICCARM__
 } data_pack_t;
-#elif defined (__GNUC__)
+#elif defined(__GNUC__) || defined(__CC_ARM)
 } __attribute__((packed)) data_pack_t;
-#elif defined (__CC_ARM)
-} __attribute__((packed)) data_pack_t;
+#else
+  #error Unknown compiler
 #endif
 
 extern uint32_t i2c_status;
