@@ -185,21 +185,18 @@ __STATIC_INLINE uint32_t crc32_prom(uint32_t s[]) {
 }
 
 __STATIC_INLINE void turn_pll_on(uint32_t mul) {
-  RCC->CFGR = mul;                             // Set the PLL multiplier
-
-  // FLASH->ACR |= (FLASH_ACR_LATENCY | FLASH_ACR_PRFTBE);
-  RCC->CR |= RCC_CR_PLLON;                     // Enable the PLL
-  while((RCC->CR & RCC_CR_PLLRDY) == 0);       // Wait until PLLRDY is set
-  RCC->CFGR |= (uint32_t) (RCC_CFGR_SW_PLL);   // Select PLL as system clock
-  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL); // Wait until the PLL is switched on
+  RCC->CFGR = mul;                                          /* Set the PLL multiplier            */
+  RCC->CR = RCC_CR_PLLON | RCC_CR_HSION | RCC_CR_HSITRIM_4; /* Switch PLL On                     */
+  while((RCC->CR & RCC_CR_PLLRDY) == 0);                    /* Wait until PLLRDY is set          */
+  RCC->CFGR = RCC_CFGR_SW_PLL;                              /* Select PLL as system clock        */
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);   /* Wait until the PLL is switched on */
 }
 
 __STATIC_INLINE void turn_pll_off(void) {
-  RCC->CFGR &= (uint32_t) (~RCC_CFGR_SW);
-  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);
-  RCC->CR &= (uint32_t)(~RCC_CR_PLLON);
-  while((RCC->CR & RCC_CR_PLLRDY) != 0);
-  // FLASH->ACR &= ~(FLASH_ACR_LATENCY | FLASH_ACR_PRFTBE);
+  RCC->CFGR = RCC_CFGR_SW_HSI;                              /* Switch system clock to HSI         */
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);   /* Wait until the clock is switched   */
+  RCC->CR = RCC_CR_HSION | RCC_CR_HSITRIM_4;                /* Turn off PLL                       */
+  while((RCC->CR & RCC_CR_PLLRDY) != 0);                    /* Ensure the PLL is switched off     */          
 }
 
 void turnRegulatorOn(void);
@@ -208,10 +205,8 @@ void powerCycle(void);
 
 #ifndef SWD_DISABLED
 __STATIC_INLINE void Configure_DBG(void) {
-  /* Enable the peripheral clock of DBG register */
-  RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
-
-  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY; // enable debug in standby mode
+  RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;                     /* Enable clock of DBG register       */
+  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY;                      /* Enable debug in standby mode       */
 }
 #endif
 
