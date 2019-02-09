@@ -1,7 +1,6 @@
 TARGET = STM32F030-WIRELESS-MULTISENSOR
 
 DEBUG = 0
-OPT = -Ofast -g0 -flto
 
 BUILD_DIR = _build
 
@@ -29,22 +28,18 @@ endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
  
-C_DEFS =  \
--DSTM32F031x6 \
--DSWD_DISABLED \
--DNDEBUG
-
 C_INCLUDES =  \
 -I../../drivers/inc \
 -I../../inc/CMSIS  \
 -I../../inc \
 -Iinc
 
-ASFLAGS = -mcpu=cortex-m0 -mthumb $(OPT) -Wall -fdata-sections -ffunction-sections
-CFLAGS  = -mcpu=cortex-m0 -mthumb $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11
+CFLAGS  = -mcpu=cortex-m0 -mthumb -DSTM32F031x6 $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+  CFLAGS += -g3 -O0 -gdwarf-4
+else
+  CFLAGS += -Ofast -g0 -flto -DSWD_DISABLED -DNDEBUG
 endif
 
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
