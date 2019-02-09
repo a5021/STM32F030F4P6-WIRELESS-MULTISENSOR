@@ -209,6 +209,8 @@ int main() {
   if (bmp180_ok) {                           // if bmp180 data is available
     payload.bmp180_temp = bmp180_calc_rt(bmp180_temp); // convert raw temperature to -512 .. 512
     payload.bmp180_press = KPA_TO_MMHG(bmp180_calc_rp(bmp180_press, BMP180_OSS)) - 700;
+  } else {
+    payload.bmp180_temp = -512;
   }
 
   if (si7021_ok) {                           // if si7021 data is available
@@ -217,6 +219,8 @@ int main() {
     payload.si7021_humi = si7021_humi;       // store it in payload's bits
     si7021_temp = (si7021_temp * 17572 / 65536 - 4685) / 10;
     payload.si7021_temp = si7021_temp;       // store it in payload's bits
+  } else {
+    si7021_temp = -512;
   }
 
   void (*turn_regulator)() = NULL;           // reset switch func ptr
