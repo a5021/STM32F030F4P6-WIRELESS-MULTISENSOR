@@ -40,4 +40,5 @@ IDE/armgcc/_build/
 IDE/EWARM/Debug/
 IDE/EWARM/Release/
 IDE/EWARM/settings/
+IDE/SES/Output/
 settings/
