@@ -270,11 +270,12 @@ int main() {
 
   if (bh1750_ok) {    // in the case of light sensor data is available
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     bh1750_lumi = bh1750_lumi * 10 / 12;     // convert raw data to Luxes
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
 #endif
 
@@ -297,14 +298,15 @@ int main() {
 
   if (pSize == 7) {
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
     P_ARR[5] = ((uint8_t *)(&bh1750_lumi))[0];
     P_ARR[6] = ((uint8_t *)(&bh1750_lumi))[1];
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
 #endif
 
@@ -344,8 +346,8 @@ int main() {
 
     RCC->AHBENR = (
 #ifndef SWD_DISABLED
-      RCC_AHBENR_FLITFEN    |
-      RCC_AHBENR_SRAMEN     |
+      RCC_AHBENR_FLITFEN  |
+      RCC_AHBENR_SRAMEN   |
 #endif
       RCC_AHBENR_GPIOAEN                          // enable clock for GPIOA
     );
@@ -509,7 +511,7 @@ int main() {
     PWR->CR = PWR_CR_DBP;                // enable write to backup domain
 
     RCC->BDCR = (                        // with backup domain control reg ...
-      RCC_BDCR_RTCEN    |                // enable RTC
+      RCC_BDCR_RTCEN      |              // enable RTC
       RCC_BDCR_RTCSEL_1                  // set LSI as RTC clock source
     );
 
@@ -520,7 +522,12 @@ int main() {
 
     RTC->PRER = prep;                    // set sync and async RTC prescaler
 
-    RTC->DR = (1 << RTC_DR_YT_Pos) | (8 << RTC_DR_YU_Pos); // YEAR = 18
+#ifdef __SES_ARM
+  #define RTC_DR_YT_Pos                  (20U)
+  #define RTC_DR_YU_Pos                  (16U)
+#endif  
+
+    RTC->DR = (1 << RTC_DR_YT_Pos) | (9 << RTC_DR_YU_Pos); // YEAR = 19
 
   } else {
     RCC->APB1ENR = RCC_APB1ENR_PWREN;    // enable power interface clock
@@ -539,8 +546,8 @@ int main() {
     while ((RTC->ISR & RTC_ISR_ALRAWF) != RTC_ISR_ALRAWF); // wait till alarm becomes inactive
     RTC->ALRMAR = wuTime;                // program alarm with new settings
     RTC->CR = (
-      RTC_CR_ALRAE     |                 // alarm enable
-      RTC_CR_ALRAIE    |                 // alarm interrupt enable
+      RTC_CR_ALRAE        |              // alarm enable
+      RTC_CR_ALRAIE       |              // alarm interrupt enable
       RTC_CR_BYPSHAD                     // bypass RTC shadow registers
     );
   }
@@ -560,8 +567,8 @@ int main() {
   //     – Clear WUF bit in Power Control/Status register (PWR_CSR)
 
   PWR->CR = (
-    PWR_CR_PDDS      |                   // set PPDS bit (1 = Standby, 0 = Stop)
-    PWR_CR_CSBF      |                   // clear Standby flag
+    PWR_CR_PDDS           |              // set PPDS bit (1 = Standby, 0 = Stop)
+    PWR_CR_CSBF           |              // clear Standby flag
     PWR_CR_CWUF                          // clear wakeup flag
   );
 
