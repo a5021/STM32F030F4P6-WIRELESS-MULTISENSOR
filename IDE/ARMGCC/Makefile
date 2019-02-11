@@ -27,7 +27,7 @@ SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
- 
+
 C_INCLUDES =  \
 -I../../drivers/inc \
 -I../../inc/CMSIS  \
@@ -49,8 +49,8 @@ STLINK_FLAGS = -c UR -V -P $(BUILD_DIR)/$(TARGET).hex -Hardrst -Run
 
 LDSCRIPT = STM32F031F6Px_FLASH.ld
 
-LIBS = -lc -lm -lnosys 
-LIBDIR = 
+LIBS = -lc -lm -lnosys
+LIBDIR =
 LDFLAGS = -mcpu=cortex-m0 -mthumb -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
@@ -75,18 +75,18 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(BIN) $< $@	
+	$(BIN) $< $@
 	
 $(BUILD_DIR):
-	mkdir $@		
+	mkdir $@
 
 # Display compiler version information.
-gccversion : 
+gccversion :
 	@$(CC) --version
 
-# Program the device.  
+# Program the device.
 program: $(BUILD_DIR)/$(TARGET).hex
-	$(STLINK) $(STLINK_FLAGS) 
+	$(STLINK) $(STLINK_FLAGS)
 
 clean:
 	-rm -fR $(BUILD_DIR)
