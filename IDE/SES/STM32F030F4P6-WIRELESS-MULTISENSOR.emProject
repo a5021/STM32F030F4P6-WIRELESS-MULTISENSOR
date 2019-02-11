@@ -88,6 +88,22 @@
       gcc_cplusplus_language_standard="c++1z"
       gcc_dwarf_version="dwarf-4"
       gcc_optimization_level="Debug" />
+    <configuration
+      Name="Release"
+      arm_assembler_variant="clang"
+      arm_compiler_variant="clang"
+      arm_keep_assembly="Yes"
+      arm_keep_preprocessor_output="Yes"
+      build_treat_warnings_as_errors="Yes"
+      c_preprocessor_definitions="NDEBUG;SWD_DISABLED"
+      c_system_include_directories="$(StudioDir)/include;$(PackagesDir)/include;../../inc"
+      clang_merge_globals="Yes"
+      gcc_c_language_standard="c11"
+      gcc_cplusplus_language_standard="c++1z"
+      gcc_optimization_level="Level 3"
+      gcc_strip_symbols="Yes"
+      link_time_optimization="No"
+      linker_strip_debug_information="Yes" />
   </project>
   <configuration
     Name="Debug"
