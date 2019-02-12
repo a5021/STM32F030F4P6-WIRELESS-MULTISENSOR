@@ -223,7 +223,7 @@ int main() {
     si7021_temp = -512;
   }
 
-  void (*turn_regulator)() = NULL;           // reset switch func ptr
+  void (*turn_regulator)(void) = NULL;       // reset switch func ptr
 
   if (adc_ok) {                              // if ADC data is available
     uint32_t adc_vcc = VREFINT_CAL * VDD_CALIB / average((uint16_t*)&vref_buf[2]);
@@ -298,17 +298,17 @@ int main() {
 
   if (pSize == 7) {
 
-#if defined(__GNUC__) && !defined(__clang__)
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
+    #if defined(__GNUC__) && !defined(__clang__)
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+    #endif
 
     P_ARR[5] = ((uint8_t *)(&bh1750_lumi))[0];
     P_ARR[6] = ((uint8_t *)(&bh1750_lumi))[1];
 
-#if defined(__GNUC__) && !defined(__clang__)
-  #pragma GCC diagnostic pop
-#endif
+    #if defined(__GNUC__) && !defined(__clang__)
+      #pragma GCC diagnostic pop
+    #endif
 
   } else if (pSize == 10) {
     ((uint16_t *)(&payload))[4] = bh1750_lumi; // payload.bh1750 = bh1750_lumi;
