@@ -152,7 +152,7 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
       }
       TIM14->SR &= ~TIM_SR_CC1IF;
     }
-  };
+  }
 
   RCC->APB1ENR = 0;                       // Disable TIM14
   RCC->CFGR = 0;                          // Disable LSI as MCO source

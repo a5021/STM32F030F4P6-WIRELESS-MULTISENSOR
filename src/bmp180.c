@@ -147,8 +147,18 @@ bool bmp180_read_prom(uint8_t buf[]) {
     RCC_AHBENR_GPIOAEN      // enable clock for GPIOA
   );
 
+  #if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wcast-align"
+  #endif
+
   // reverse byte order
   uint32_t * p32 = (uint32_t *) buf;    // get buffer head
+  
+  #if defined(__clang__)
+    #pragma clang diagnostic pop
+  #endif
+  
   for (int i = 0; i < 6; i++) {         // for every 4-byte word
     *p32 = __REV16(*p32);               // swap two pairs of bytes
     p32++;                              // set pointer to the next buffer value
@@ -159,7 +169,7 @@ bool bmp180_read_prom(uint8_t buf[]) {
 
 bool bmp180_get_prom(void) {
 
-  BMP180_Calibration_TypeDef prom_buf;  // define the calibration data buffer
+  BMP180_Calibration_TypeDef prom_buf __attribute__ ((aligned (4)));  // define the calibration data buffer
 
   if (!bmp180_read_prom((uint8_t*)&prom_buf)) { // read calibr. data from sensor
     return false;                               // break if error

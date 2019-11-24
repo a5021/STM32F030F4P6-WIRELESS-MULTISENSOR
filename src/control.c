@@ -112,7 +112,7 @@ void powerCycle(void) {
   );
 }  
 
-void instant_standby(void) {
+__attribute__((noreturn)) void instant_standby(void) {
   RCC->APB1ENR = 0;
   RCC->APB2ENR = 0;
 
@@ -146,18 +146,18 @@ void instant_standby(void) {
 /*            Cortex-M0 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-void NMI_Handler(void) {
+__attribute__((noreturn)) void NMI_Handler(void) {
   instant_standby();
 }
 
-void HardFault_Handler(void) {
+__attribute__((noreturn)) void HardFault_Handler(void) {
   instant_standby();
 }
 
-void SVC_Handler(void) {
+__attribute__((noreturn)) void SVC_Handler(void) {
   instant_standby();
 }
 
-void PendSV_Handler(void) {
+__attribute__((noreturn)) void PendSV_Handler(void) {
   instant_standby();
 }

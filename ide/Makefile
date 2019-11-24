@@ -4,11 +4,11 @@ DEBUG = 0
 
 BUILD_DIR = _build
 
-C_SOURCES =  \
-../../src/adc.c \
-../../src/bmp180.c \
-../../src/control.c \
-../../main.c
+C_SOURCES =      \
+../src/adc.c     \
+../src/bmp180.c  \
+../src/control.c \
+../src/main.c
 
 ASM_SOURCES = startup_stm32f031x6.s
 
@@ -28,10 +28,10 @@ endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
-C_INCLUDES =  \
--I../../drivers/inc \
--I../../inc/CMSIS  \
--I../../inc \
+C_INCLUDES =     \
+-I../drv/inc \
+-I../inc/CMSIS   \
+-I../inc         \
 -Iinc
 
 CFLAGS  = -mcpu=cortex-m0 -mthumb -DSTM32F031x6 $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11

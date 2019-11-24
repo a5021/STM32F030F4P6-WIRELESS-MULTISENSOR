@@ -320,7 +320,7 @@
 #define  NRF24_TX_POWER_NORMAL     NRF24_OUTPUT_POWER_6DBM
 #define  NRF24_TX_POWER_HIGH       NRF24_OUTPUT_POWER_0DBM
 
-#define SPI_DATAREG         *(uint8_t*)&SPI1->DR
+#define SPI_DATAREG         *(volatile uint8_t*)&SPI1->DR
 #define SPI_WRITE(OP, R_NO) SPI_DATAREG = (uint8_t)(OP | (REGISTER_MASK & R_NO))
 #define SPI_DUMMY_READ()    (SPI1->DR)
 

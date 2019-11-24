@@ -127,12 +127,12 @@ __STATIC_INLINE bool bmp180_get_result(int32_t *r, uint8_t r_type) {
   I2C_CR1_RX();
   I2C_START_READING(BMP180_I2C_ADDRESS, r_type);
   I2C_SLEEP_UNTIL_RXNE();
-  uint8_t msb = I2C1->RXDR;
+  uint8_t msb = (uint8_t) I2C1->RXDR;
   I2C_SLEEP_UNTIL_RXNE();
   if (r_type == BMP180_TEMP) {
-    *r = ((msb << 8) | I2C1->RXDR);
+    *r = (int32_t)((msb << 8) | I2C1->RXDR);
   } else {
-    uint8_t lsb = I2C1->RXDR;
+    uint8_t lsb = (uint8_t) I2C1->RXDR;
     I2C_SLEEP_UNTIL_RXNE();
     *r = ((msb << 16) | (lsb << 8) | I2C1->RXDR);
   }

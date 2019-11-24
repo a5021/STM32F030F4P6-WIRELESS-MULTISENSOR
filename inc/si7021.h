@@ -33,9 +33,9 @@ __STATIC_INLINE bool si7021_get_result(int32_t *res) {
   I2C_CR1_RX();
   I2C_START_READING(SI7021_I2C_ADDRESS, 2);
   I2C_SLEEP_UNTIL_RXNE();
-  rData[0] = I2C1->RXDR;
+  rData[0] = (uint8_t ) I2C1->RXDR;
   I2C_SLEEP_UNTIL_RXNE();
-  rData[1] = I2C1->RXDR;
+  rData[1] = (uint8_t) I2C1->RXDR;
   
   I2C_WAIT_FOR_STOP_FLAG();  // no sleep here
 

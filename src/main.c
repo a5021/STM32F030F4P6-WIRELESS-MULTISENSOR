@@ -8,20 +8,13 @@
 #include "si7021.h"
 #include "nrf24l01.h"
 
-// #define SERIAL_DEBUG    1
-// #define USE_EXT_CODE 1
-
-#ifdef  SERIAL_DEBUG
-  #include "usart.h"
-#endif
-
 int main() {
 
   uint32_t bh1750_lumi,
+           si7021_humi,
            wuTime;
 
   int32_t  si7021_temp,
-           si7021_humi,
            bmp180_temp,
            bmp180_press;
 
@@ -96,25 +89,25 @@ int main() {
 
   si7021_ok = ((     // read SI7021 sensor
     si7021_ok                                            &&  // if conv started
-    si7021_get_result(&si7021_humi)                      &&  // get humi
+    si7021_get_result((int32_t*)&si7021_humi)            &&  // get humi
     si7021_start_conv(SI7021_READ_TEMP)                  &&  // start conv temp
     si7021_get_result(&si7021_temp)                      &&  // get temperature
-    (i2c_disable(), true))                               ||  // disable I2C
-    (i2c_disable(), false)                               ||  // disable I2C
-    (s_delay(14), false)                                     // sleep if error
+    ((void)i2c_disable(), true))                         ||  // disable I2C
+    ((void)i2c_disable(), false)                         ||  // disable I2C
+    ((void)s_delay(14), false)                               // sleep if error
   );
 
   adc_ok = ((        // read vcc, vbat and MCU's temperature sensor
     (!SKIP_ADC(nvStatus) || (PKT_ID(CYCLE_COUNT) == 0))  &&  // check request
     adc_get_data()                                       &&  // do adc measuring
     (nvStatus |= NV_SKIP_ADC))                           ||  // set flag
-    (s_delay(6), false)  // 6*512*2/8000 = ~1ms sleep if skipped
+    ((void)s_delay(6), false)  // 6*512*2/8000 = ~1ms sleep if skipped
   );
 
   bh1750_ok = (      // read BH1750 sensor
     bh1750_ok                                            &&  // if conv started
-    !(IS_BH1750_RES_HIGH() && (s_delay(936), false))     &&  // (936*2+4)*512/8000=~120 ms
-    (i2c_enable(), true)                                 &&  // enable i2c
+    !(IS_BH1750_RES_HIGH() && ((void)s_delay(936), false))&& // (936*2+4)*512/8000=~120 ms
+    ((void)i2c_enable(), true)                           &&  // enable i2c
     bh1750_get_result(&bh1750_lumi)                          // get luminosity
   );
 
@@ -200,7 +193,7 @@ int main() {
 
   turn_pll_on(RCC_CFGR_PLLMUL8);             /* 8 MHz HSI / 2 * 8 = 32 MHz */
 
-  data_pack_t payload;                       // payload packed structure
+  data_pack_t payload __attribute__ ((aligned (4))); // payload packed structure
 
   payload.pkt_id = PKT_ID(CYCLE_COUNT);      // set data packet ID (4 bits)
   payload.tx_status = TX_STATUS(nvStatus);   // set last TX result bit
@@ -270,12 +263,12 @@ int main() {
 
   if (bh1750_ok) {    // in the case of light sensor data is available
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     bh1750_lumi = bh1750_lumi * 10 / 12;     // convert raw data to Luxes
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
   #pragma GCC diagnostic pop
 #endif
 
@@ -298,7 +291,7 @@ int main() {
 
   if (pSize == 7) {
 
-    #if defined(__GNUC__) && !defined(__clang__)
+    #if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
       #pragma GCC diagnostic push
       #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     #endif
@@ -306,12 +299,21 @@ int main() {
     P_ARR[5] = ((uint8_t *)(&bh1750_lumi))[0];
     P_ARR[6] = ((uint8_t *)(&bh1750_lumi))[1];
 
-    #if defined(__GNUC__) && !defined(__clang__)
+    #if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
       #pragma GCC diagnostic pop
     #endif
 
   } else if (pSize == 10) {
+    #if defined(__clang__)
+      #pragma clang diagnostic push
+      #pragma clang diagnostic ignored "-Wcast-align"
+    #endif
+    
     ((uint16_t *)(&payload))[4] = bh1750_lumi; // payload.bh1750 = bh1750_lumi;
+    
+    #if defined(__clang__)
+      #pragma clang diagnostic pop
+    #endif
   }
 
 #ifdef USE_EXT_CODE
