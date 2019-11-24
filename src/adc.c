@@ -173,7 +173,7 @@ void __STATIC_INLINE initADC(bool use_ts) {
         );                                                                    \
         DMA1_Channel1->CCR = 0
 
-#define START_ADC_CONVERSION()  ADC1->CR = ADC_CR_ADSTART;
+#define START_ADC_CONVERSION()  ADC1->CR = ADC_CR_ADSTART
 
 uint32_t adc_read_vload(void) {
 

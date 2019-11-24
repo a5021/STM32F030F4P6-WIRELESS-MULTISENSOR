@@ -55,7 +55,7 @@ __STATIC_INLINE bool bh1750_get_result(uint32_t *lx) {
   I2C_SLEEP_UNTIL_RXNE();
   I2C_WAIT_FOR_STOP_FLAG();
 
-  *lx = (msb << 8) | I2C1->RXDR;
+  *lx = (uint32_t) (msb << 8) | (uint8_t) I2C1->RXDR;
   
   return true;
 }  

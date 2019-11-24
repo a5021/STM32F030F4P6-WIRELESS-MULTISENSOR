@@ -34,7 +34,7 @@ int32_t B5;
         );                                  \
         DMA1_Channel3->CCR = 0
 
-bool bmp180_read_prom(uint8_t buf[]) {
+__STATIC_INLINE bool bmp180_read_prom(uint8_t buf[]) {
 
   I2C_CR1_STOP();           // configure STOPF as the wakeup event
   I2C_START_WRITING(BMP180_I2C_ADDRESS, 1, BMP180_PROM_START_ADDR);

@@ -83,6 +83,14 @@ __STATIC_INLINE int32_t bmp180_calc_rp(int32_t up, uint8_t oss){
   int32_t B3, B6, X1, X2, X3, p;
   uint32_t B4, B7;
   
+#if defined(__clang__)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wsign-conversion" 
+  // #pragma clang diagnostic ignored "-Wimplicit-int-conversion" 
+  // #pragma clang diagnostic ignored "-Wconditional-uninitialized"
+  // #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif  
+  
   B6 = B5 - 4000;
   X1 = (CAL_DATA->B2 * (B6 * B6 / 4096)) / 2048;
   X2 = CAL_DATA->AC2 * B6 / 2048;
@@ -106,6 +114,14 @@ __STATIC_INLINE int32_t bmp180_calc_rp(int32_t up, uint8_t oss){
   X2 = (-7357 * p) / 65536;
   p = p + (X1 + X2 + 3791) / 16;
   return p;
+  
+#if defined(__clang__)
+  #pragma clang diagnostic pop
+  // #pragma clang diagnostic ignored "-Wsign-conversion" 
+  // #pragma clang diagnostic ignored "-Wimplicit-int-conversion" 
+  // #pragma clang diagnostic ignored "-Wconditional-uninitialized"
+  // #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif    
 }
 
 __STATIC_INLINE bool bmp180_start_conv(uint8_t conv_type) {
@@ -130,11 +146,12 @@ __STATIC_INLINE bool bmp180_get_result(int32_t *r, uint8_t r_type) {
   uint8_t msb = (uint8_t) I2C1->RXDR;
   I2C_SLEEP_UNTIL_RXNE();
   if (r_type == BMP180_TEMP) {
-    *r = (int32_t)((msb << 8) | I2C1->RXDR);
+    // uint8_t a =  ;
+    *r = (int32_t)(msb << 8) | (uint8_t)I2C1->RXDR;
   } else {
     uint8_t lsb = (uint8_t) I2C1->RXDR;
     I2C_SLEEP_UNTIL_RXNE();
-    *r = ((msb << 16) | (lsb << 8) | I2C1->RXDR);
+    *r = (int32_t)((msb << 16) | (lsb << 8) | (uint8_t)I2C1->RXDR);
   }
   I2C_WAIT_FOR_STOP_FLAG();
   return true;

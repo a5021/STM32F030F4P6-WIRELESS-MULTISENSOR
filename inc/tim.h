@@ -28,6 +28,12 @@
         } while(0)
 
 __STATIC_INLINE void s_delay(uint32_t div) {
+  
+#if defined(__clang__)
+  // #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wextra-semi-stmt" 
+#endif  
+  
   INIT_TIMER(div, 2);            
   uint32_t rcc_cfgr = RCC->CFGR;        
   RUN_MCU_AT(LOWEST_FREQ);

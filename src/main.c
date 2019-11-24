@@ -199,6 +199,14 @@ int main() {
   payload.tx_status = TX_STATUS(nvStatus);   // set last TX result bit
   payload.sen_status = (i2c_status == 0);    // set sensors I/O result
 
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#elif defined(__clang__) && __ARMCC_VERSION > 6100000
+   #pragma clang diagnostic push
+   #pragma clang diagnostic ignored "-Wconditional-uninitialized"
+#endif
+
   if (bmp180_ok) {                           // if bmp180 data is available
     payload.bmp180_temp = bmp180_calc_rt(bmp180_temp); // convert raw temperature to -512 .. 512
     payload.bmp180_press = KPA_TO_MMHG(bmp180_calc_rp(bmp180_press, BMP180_OSS)) - 700;
@@ -215,6 +223,12 @@ int main() {
   } else {
     si7021_temp = -512;
   }
+  
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
+  #pragma GCC diagnostic pop
+ #elif defined(__clang__) && __ARMCC_VERSION > 6100000
+   #pragma clang diagnostic pop
+#endif  
 
   void (*turn_regulator)(void) = NULL;       // reset switch func ptr
 
@@ -256,7 +270,7 @@ int main() {
 
     payload.adc_temp = adc_temp;             // put temp value into payload
     payload.adc_vbat = adc_vbat;             // put vbat value into payload
-    P_ARR[7] = adc_vcc - 160;                // put vcc value into payload
+    P_ARR[7] = (uint8_t)(adc_vcc - 160);     // put vcc value into payload
   } else {
     wuTime = 0;   // reset var to disable unnecessary RTC alarm reprogramming
   }
@@ -266,10 +280,17 @@ int main() {
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#elif defined(__clang__) && __ARMCC_VERSION > 6100000
+   #pragma clang diagnostic push
+   #pragma clang diagnostic ignored "-Wconditional-uninitialized"
 #endif
+    
     bh1750_lumi = bh1750_lumi * 10 / 12;     // convert raw data to Luxes
+    
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__CC_ARM)
   #pragma GCC diagnostic pop
+#elif defined(__clang__) && __ARMCC_VERSION > 6100000
+  #pragma clang diagnostic pop
 #endif
 
     nvStatus &= ~NV_BH1750_RES_MASK;         // clear BH1750 bits in status var
@@ -309,7 +330,7 @@ int main() {
       #pragma clang diagnostic ignored "-Wcast-align"
     #endif
     
-    ((uint16_t *)(&payload))[4] = bh1750_lumi; // payload.bh1750 = bh1750_lumi;
+    ((uint16_t *)(&payload))[4] = (uint16_t) bh1750_lumi; // payload.bh1750 = bh1750_lumi;
     
     #if defined(__clang__)
       #pragma clang diagnostic pop

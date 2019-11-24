@@ -158,7 +158,7 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
   RCC->CFGR = 0;                          // Disable LSI as MCO source
   RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;  // Reset TIM14
 
-  preDiv_S = 8000000UL * SAMPLE_NUM / ((sSum == 0) ? 3040UL : sSum) / PREDIV_A;
+  preDiv_S = (uint16_t)(8000000UL * SAMPLE_NUM / ((sSum == 0) ? 3040UL : sSum) / PREDIV_A);
 
   RCC->APB1RSTR = 0;                      // Reset done
 

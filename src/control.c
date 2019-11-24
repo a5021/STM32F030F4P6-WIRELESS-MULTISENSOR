@@ -3,6 +3,16 @@
 #include "adc.h"
 #include "tim.h"
 
+
+#if defined(__clang__)
+//   // #pragma clang diagnostic push
+//   #pragma clang diagnostic ignored "-Wextra-semi-stmt" 
+//   #pragma clang diagnostic ignored "-Wsign-conversion" 
+//   #pragma clang diagnostic ignored "-Wimplicit-int-conversion" 
+   #pragma clang diagnostic ignored "-Wmissing-noreturn"
+   #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+
 uint32_t i2c_status = 0;                   // I2C interface status
 uint32_t nvStatus;                         // non-volatile system status
 uint16_t flash_status = 0;                 // write flash status
@@ -112,7 +122,7 @@ void powerCycle(void) {
   );
 }  
 
-__attribute__((noreturn)) void instant_standby(void) {
+__attribute__((noreturn)) __STATIC_INLINE void instant_standby(void) {
   RCC->APB1ENR = 0;
   RCC->APB2ENR = 0;
 
@@ -146,18 +156,19 @@ __attribute__((noreturn)) void instant_standby(void) {
 /*            Cortex-M0 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-__attribute__((noreturn)) void NMI_Handler(void) {
+void NMI_Handler(void) {
   instant_standby();
 }
 
-__attribute__((noreturn)) void HardFault_Handler(void) {
+void HardFault_Handler(void) {
   instant_standby();
 }
 
-__attribute__((noreturn)) void SVC_Handler(void) {
+void SVC_Handler(void) {
   instant_standby();
 }
 
-__attribute__((noreturn)) void PendSV_Handler(void) {
+void PendSV_Handler(void) {
   instant_standby();
 }
+

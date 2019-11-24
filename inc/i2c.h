@@ -68,10 +68,10 @@ extern uint32_t i2c_status;
 
 #define I2C_START_READING(ADDR, COUNT)                            \
           I2C1->CR2 = (                                           \
-            I2C_CR2_AUTOEND |                                     \
-            ((COUNT) << 16) |                                     \
-            I2C_CR2_RD_WRN  |                                     \
-            ((ADDR) << 1)   |                                     \
+            I2C_CR2_AUTOEND           |                           \
+            (((uint32_t)COUNT) << 16) |                           \
+            I2C_CR2_RD_WRN            |                           \
+            ((ADDR) << 1)             |                           \
             I2C_CR2_START                                         \
           )
 
