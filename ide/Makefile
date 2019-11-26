@@ -29,12 +29,12 @@ HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
 C_INCLUDES =     \
--I../drv/inc \
+-I../drv/inc     \
 -I../inc/CMSIS   \
 -I../inc         \
 -Iinc
 
-CFLAGS  = -mcpu=cortex-m0 -mthumb -DSTM32F031x6 $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=c11
+CFLAGS  = -mcpu=cortex-m0 -mthumb -DSTM32F031x6 $(C_INCLUDES) -Wall -fdata-sections -ffunction-sections -fverbose-asm -std=gnu11
 
 ifeq ($(DEBUG), 1)
   CFLAGS += -g3 -O0 -gdwarf-4

@@ -30,7 +30,7 @@
 *.tmp
 **/JLinkLog.txt
 **/EventRecorderStub.scvd
-**/_viminfo
+**/_build
 **/_vimtags
 ide/MDK-ARM/RTE/
 ide/MDK-ARM/DebugConfig/

@@ -69,46 +69,46 @@ int main() {
   /***************************************************************************/
 
   bh1750_ok = (
-    (!SKIP_LUMI(nvStatus) || (PKT_ID(CYCLE_COUNT) == 7)) &&  // check cond.
-    bh1750_reset()                                       &&  // reset light sensor
-    bh1750_start_conv(BH1750_PARAM)                          // start light conv
+    (!SKIP_LUMI(nvStatus) || (PKT_ID(CYCLE_COUNT) == 7))   &&  // check cond.
+    bh1750_reset()                                         &&  // reset light sensor
+    bh1750_start_conv(BH1750_PARAM)                            // start light conv
   );
 
-  si7021_ok = si7021_start_conv(SI7021_MEAS_HUMI_NOHOLD);    // start humi conv
-
-  bmp180_ok = ((     // read BMP180 sensor
-    bmp180_start_conv(BMP180_TEMP)                       &&  // start temp conv
-    i2c_sleep(convParam[0].delay)                        &&  // sleep 4.5ms
-    bmp180_get_result(&bmp180_temp, BMP180_TEMP)         &&  // get temperature
-    bmp180_start_conv(BMP180_PRESS)                      &&  // start press conv
-    i2c_sleep(convParam[BMP180_OSS].delay)               &&  // sleep 13.5ms
-    bmp180_get_result(&bmp180_press, BMP180_PRESS)       &&  // get pressure
-    (IS_BMP180_PROM_AVAILABLE() || bmp180_get_prom()))   ||  // get calib. data
+  si7021_ok = si7021_start_conv(SI7021_MEAS_HUMI_NOHOLD);      // start humi conv
+  
+  bmp180_ok = ((     // read BMP180 sensor  
+    bmp180_start_conv(BMP180_TEMP)                         &&  // start temp conv
+    i2c_sleep(convParam[0].delay)                          &&  // sleep 4.5ms
+    bmp180_get_result(&bmp180_temp, BMP180_TEMP)           &&  // get temperature
+    bmp180_start_conv(BMP180_PRESS)                        &&  // start press conv
+    i2c_sleep(convParam[BMP180_OSS].delay)                 &&  // sleep 13.5ms
+    bmp180_get_result(&bmp180_press, BMP180_PRESS)         &&  // get pressure
+    (IS_BMP180_PROM_AVAILABLE() || bmp180_get_prom()))     ||  // get calib. data
     ! i2c_sleep(148) // (148*2+4)*512/8000=~19.2ms sleep if error
   );
 
   si7021_ok = ((     // read SI7021 sensor
-    si7021_ok                                            &&  // if conv started
-    si7021_get_result((int32_t*)&si7021_humi)            &&  // get humi
-    si7021_start_conv(SI7021_READ_TEMP)                  &&  // start conv temp
-    si7021_get_result(&si7021_temp)                      &&  // get temperature
-    ((void)i2c_disable(), true))                         ||  // disable I2C
-    ((void)i2c_disable(), false)                         ||  // disable I2C
-    ((void)s_delay(14), false)                               // sleep if error
+    si7021_ok                                              &&  // if conv started
+    si7021_get_result((int32_t*)&si7021_humi)              &&  // get humi
+    si7021_start_conv(SI7021_READ_TEMP)                    &&  // start conv temp
+    si7021_get_result(&si7021_temp)                        &&  // get temperature
+    ((void)i2c_disable(), true))                           ||  // disable I2C
+    ((void)i2c_disable(), false)                           ||  // disable I2C
+    ((void)s_delay(14), false)                                 // sleep if error
   );
 
   adc_ok = ((        // read vcc, vbat and MCU's temperature sensor
-    (!SKIP_ADC(nvStatus) || (PKT_ID(CYCLE_COUNT) == 0))  &&  // check request
-    adc_get_data()                                       &&  // do adc measuring
-    (nvStatus |= NV_SKIP_ADC))                           ||  // set flag
+    (!SKIP_ADC(nvStatus) || (PKT_ID(CYCLE_COUNT) == 0))    &&  // check request
+    adc_get_data()                                         &&  // do adc measuring
+    (nvStatus |= NV_SKIP_ADC))                             ||  // set flag
     ((void)s_delay(6), false)  // 6*512*2/8000 = ~1ms sleep if skipped
   );
 
   bh1750_ok = (      // read BH1750 sensor
-    bh1750_ok                                            &&  // if conv started
-    !(IS_BH1750_RES_HIGH() && ((void)s_delay(936), false))&& // (936*2+4)*512/8000=~120 ms
-    ((void)i2c_enable(), true)                           &&  // enable i2c
-    bh1750_get_result(&bh1750_lumi)                          // get luminosity
+    bh1750_ok                                              &&  // if conv started
+    !(IS_BH1750_RES_HIGH() && ((void)s_delay(936), false)) &&  // (936*2+4)*512/8000=~120 ms
+    ((void)i2c_enable(), true)                             &&  // enable i2c
+    bh1750_get_result(&bh1750_lumi)                            // get luminosity
   );
 
   i2c_disable();     // Stop all I2C activity
@@ -154,15 +154,15 @@ int main() {
     NRF24_SET_RADIO_CHANNEL(NRF_FREQ_CHANNEL);
     NRF24_SETUP_RADIO(NRF24_TX_POWER_LOWEST, NRF24_DATA_RATE_2M);
 
-  /*
-
-  Page 30 of nRF24L01+ Product Specification:
-
-  In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled.
-  In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
-  DPL enabled must have the DPL_P0 bit in DYNPD set.
-
-  */
+    /*
+  
+      Page 30 of nRF24L01+ Product Specification:
+  
+      In order to enable DPL the EN_DPL bit in the FEATURE register must be enabled.
+      In RX mode the DYNPD register must be set. A PTX that transmits to a PRX with
+      DPL enabled must have the DPL_P0 bit in DYNPD set.
+  
+    */
 
     NRF24_SET_FEATURE(NRF24_EN_PAYLOAD_NOACK | NRF24_EN_DYN_PAYLOAD);
     NRF24_SET_DPL_PIPE(NRF24_DYNPD_DPL_P0);
@@ -233,7 +233,7 @@ int main() {
   void (*turn_regulator)(void) = NULL;       // reset switch func ptr
 
   if (adc_ok) {                              // if ADC data is available
-    uint32_t adc_vcc = VREFINT_CAL * VDD_CALIB / average((uint16_t*)&vref_buf[2]);
+    uint32_t adc_vcc = VREFINT_CAL * VDD_CALIB / average((uint16_t*) &vref_buf[2]);
     int32_t adc_temp = average(ts_buf) * adc_vcc / VDD_CALIB - TS_CAL_30;
     adc_temp = adc_temp * 80 / (int32_t) (TS_CAL_110 - TS_CAL_30) + 30;
     uint32_t adc_vbat = adc2voltage(v_buf, adc_vcc);  // compute vbat
@@ -581,13 +581,15 @@ int main() {
   RTC->ISR &= ~(RTC_ISR_ALRAF | RTC_ISR_INIT); // exit RTC init stage
 
   RTC_WRITE_DISABLE();                   // protect RTC registers for writing
-
-  //     Standby mode entry:
-  //     ===================
-  //     WFI (Wait for Interrupt) or WFE (Wait for Event) while:
-  //     – Set SLEEPDEEP bit in System Control register (SCB_SCR)
-  //     – Set PDDS bit in Power Control register (PWR_CR)
-  //     – Clear WUF bit in Power Control/Status register (PWR_CSR)
+  
+  /*
+      Standby mode entry:
+      ===================
+      WFI (Wait for Interrupt) or WFE (Wait for Event) while:
+      – Set SLEEPDEEP bit in System Control register (SCB_SCR)
+      – Set PDDS bit in Power Control register (PWR_CR)
+      – Clear WUF bit in Power Control/Status register (PWR_CSR)
+  */
 
   PWR->CR = (
     PWR_CR_PDDS           |              // set PPDS bit (1 = Standby, 0 = Stop)
