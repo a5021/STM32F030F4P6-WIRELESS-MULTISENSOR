@@ -107,11 +107,13 @@ extern uint32_t i2c_status;
           }
 
 #define I2C_SLEEP_UNTIL_RXNE()                                    \
-          SLEEP_MODE();                                           \
-          if((I2C1->ISR & I2C_ISR_RXNE) != I2C_ISR_RXNE) {        \
-            I2C_CHECK_FOR_BUS_FAIL();                             \
-            ABANDON_ROUTINE(ERROR_I2C_UNKNOWN);                   \
-          }
+          do {                                                    \
+            SLEEP_MODE();                                         \
+            if((I2C1->ISR & I2C_ISR_RXNE) != I2C_ISR_RXNE) {      \
+              I2C_CHECK_FOR_BUS_FAIL();                           \
+              ABANDON_ROUTINE(ERROR_I2C_UNKNOWN);                 \
+            }                                                     \
+          } while(0)
 
 #define I2C_WAIT_FOR_TX_FLAG()                                    \
           while((I2C1->ISR & I2C_ISR_TXE) != I2C_ISR_TXE) {       \
@@ -119,11 +121,13 @@ extern uint32_t i2c_status;
           }
 
 #define I2C_SLEEP_UNTIL_TXE()                                     \
-          SLEEP_MODE();                                           \
-          if((I2C1->ISR & I2C_ISR_TXE) != I2C_ISR_TXE) {          \
-            I2C_CHECK_FOR_BUS_FAIL();                             \
-            ABANDON_ROUTINE(ERROR_I2C_UNKNOWN);                   \
-          }
+          do {                                                    \
+            SLEEP_MODE();                                         \
+            if((I2C1->ISR & I2C_ISR_TXE) != I2C_ISR_TXE) {        \
+              I2C_CHECK_FOR_BUS_FAIL();                           \
+              ABANDON_ROUTINE(ERROR_I2C_UNKNOWN);                 \
+            }                                                     \
+          } while(0)
 
 __STATIC_INLINE void i2c_reset(void) {
 //

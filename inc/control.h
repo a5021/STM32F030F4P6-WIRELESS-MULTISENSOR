@@ -1,6 +1,8 @@
 #ifndef __CONTROL_INCLUDED
 #define __CONTROL_INCLUDED
 
+#include <stdint.h>
+
 #define NRF_FREQ_CHANNEL        99
 #define BMP180_OSS              2
 

@@ -2372,69 +2372,6 @@
         </settings>
     </configuration>
     <group>
-        <name>drivers</name>
-        <group>
-            <name>inc</name>
-            <file>
-                <name>$PROJ_DIR$\drivers\core_cm0.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\drivers\core_cmFunc.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\drivers\core_cmInstr.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\drivers\inc\stm32f0xx.h</name>
-            </file>
-        </group>
-        <group>
-            <name>src</name>
-            <file>
-                <name>$PROJ_DIR$\..\..\drivers\src\startup_stm32f031x6.s</name>
-            </file>
-        </group>
-    </group>
-    <group>
-        <name>inc</name>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\adc.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\bh1750.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\bmp180.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\control.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\flash.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\gpio.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\i2c.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\nrf24l01.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\si7021.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\spi.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\tim.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\inc\usart.h</name>
-        </file>
-    </group>
-    <group>
         <name>src</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\adc.c</name>
@@ -2447,6 +2384,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\main.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\drv\src\startup_stm32f031x6.s</name>
         </file>
     </group>
 </project>

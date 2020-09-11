@@ -11,7 +11,7 @@
           TIM14->EGR = TIM_EGR_UG;                 \
           TIM14->DIER = TIM_DIER_UIE;              \
           TIM14->SR = 0;                           \
-          NVIC_ClearPendingIRQ(TIM14_IRQn);
+          NVIC_ClearPendingIRQ(TIM14_IRQn)
           
 #define RUN_TIMER()  TIM14->CR1 = TIM_CR1_CEN
 
@@ -29,16 +29,13 @@
 
 __STATIC_INLINE void s_delay(uint32_t div) {
   
-#if defined(__clang__)
-  // #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wextra-semi-stmt" 
-#endif  
-  
   INIT_TIMER(div, 2);            
   uint32_t rcc_cfgr = RCC->CFGR;        
   RUN_MCU_AT(LOWEST_FREQ);
   RUN_TIMER();
+  
   __WFE();                              
+  
   RCC->CFGR = rcc_cfgr;                 
   RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;
   RCC->APB1ENR &= ~RCC_APB1ENR_TIM14EN; 
