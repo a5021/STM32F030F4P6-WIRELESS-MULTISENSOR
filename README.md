@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/a5021/STM32F030F4P6-WIRELESS-MULTISENSOR/actions/workflows/build.yml/badge.svg)](https://github.com/a5021/STM32F030F4P6-WIRELESS-MULTISENSOR/actions/workflows/build.yml) [![MCU](https://img.shields.io/badge/MCU-STM32F030F4P6-00A9E0)]() [![Radio](https://img.shields.io/badge/Radio-nRF24L01-00A9E0)]() [![Sensors](https://img.shields.io/badge/Sensors-BMP180_SI7021_BH1750-00A9E0)]() [![IDE](https://img.shields.io/badge/IDE-Make%20%7C%20EWARM%20%7C%20MDK--ARM%20%7C%20SES-00A9E0)]()
 
-Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from BMP180 (pressure, temperature), SI7021 (humidity, temperature), and BH1750 (illuminance), monitors battery and die temperature via ADC, and transmits a composite packet over an nRF24L01+ radio link. Designed for ultra-low-power battery operation with adaptive duty cycling.
+Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from BMP180 (pressure, temperature), SI7021 (humidity, temperature), and BH1750 (illuminance), monitors battery and die temperature via ADC, and transmits a composite packet over an nRF24L01+ radio link. Designed for ultra-low-power battery operation with adaptive duty cycling. The datagrams are received by an ATmega8-based repeater ([ATMEGA8-NRF24L01-REPEATER](https://github.com/a5021/ATMEGA8-NRF24L01-REPEATER)) and can be decoded by an STM8S-based receiver ([STM8S-NRF24L01-RECEIVER](https://github.com/a5021/STM8S-NRF24L01-RECEIVER)).
 
 ## Features
 
