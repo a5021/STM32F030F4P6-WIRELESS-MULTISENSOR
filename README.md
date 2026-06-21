@@ -183,3 +183,9 @@ ide/
 +-- STM32F031F6Px_FLASH.ld  Linker script
 +-- startup_stm32f031x6.s   GCC startup
 ```
+
+
+## Related Projects
+
+- [ATMEGA8-NRF24L01-REPEATER](https://github.com/a5021/ATMEGA8-NRF24L01-REPEATER) — wireless repeater that receives and retransmits this sensor's datagrams
+- [STM8S-NRF24L01-RECEIVER](https://github.com/a5021/STM8S-NRF24L01-RECEIVER) — STM8S-based receiver that decodes the relayed data
