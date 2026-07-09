@@ -11,7 +11,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
   - Bosch BMP180 - pressure and temperature (int32 compensation)
   - Silicon Labs SI7021 - humidity and temperature
   - Rohm BH1750 - illuminance (dynamic resolution selection)
-- nRF24L01+ radio in Enhanced ShockBurst mode, variable payload (7-11 bytes)
+- nRF24L01+ radio in Enhanced ShockBurst mode, variable payload (5-10 bytes)
 - ADC VREFINT, VBAT, VLOAD monitoring with DMA and auto-off
 - Adaptive wake interval: 1-3 minutes based on VBAT level
 - Power cycle of sensor rail on cold boot (load switch PF0 + DC-DC PA0)
@@ -36,9 +36,9 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 
 | Signal | Pin  | Peripheral    | Notes                         |
 |--------|------|---------------|-------------------------------|
-| I2C_SCL| PA9  | I2C1          | Shared bus, 100 kHz           |
+| I2C_SCL| PA9  | I2C1          | Shared bus, 400 kHz           |
 | I2C_SDA| PA10 | I2C1          |                               |
-| SPI_SCK| PA5  | SPI1          | nRF24L01+, 8 MHz              |
+| SPI_SCK| PA5  | SPI1          | nRF24L01+, 4 MHz (PCLK/2)     |
 | SPI_MISO| PA6 | SPI1          |                               |
 | SPI_MOSI| PA7 | SPI1          |                               |
 | NRF_CE | PA3  | GPIO output    | Chip enable, active high      |
@@ -51,23 +51,55 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 
 ## Radio Protocol - Packet Format
 
-Variable-length payload transmitted via nRF24L01+ in Enhanced ShockBurst mode (NoACK, dynamic payload, 3-byte address, channel 99):
+Variable-length payload transmitted via nRF24L01+ in Enhanced ShockBurst mode
+(NoACK, dynamic payload, 3-byte address, channel 99). Total size depends on
+data available: 5 B, 7 B, 8 B, or 10 B.
 
-| Offset | Size    | Field           | Description                                         |
-|--------|---------|-----------------|-----------------------------------------------------|
-| 0      | 4 bits  | Packet ID       | Rolling 4-bit identifier (derived from cycle count) |
-| 0.5    | 1 bit   | TX Status       | Last transmission result (0 = fail, 1 = success)    |
-| 0.6    | 1 bit   | Sensor Status   | I2C sensors I/O result (0 = error, 1 = success)     |
-| 1      | 6 bits  | BMP180 Temp     | Compensated temperature, signed, -512..512 scale     |
-| 1.6    | 10 bits | BMP180 Pressure | Compensated pressure, mmHg - 700, unsigned          |
-| 3      | 7 bits  | SI7021 Humidity | Max 127 %RH                                         |
-| 3.7    | 9 bits  | SI7021 Temp     | Temperature, signed, C x 10                        |
-| 5      | 2 bytes | ADC Temp        | MCU die temperature, C x 1                         |
-| 7      | 2 bytes | VBAT            | Battery voltage, mV                                  |
-| 9      | 1 byte  | VCC / Ext       | VREFINT-calibrated VDD or extended code             |
-| 10     | 2 bytes | BH1750 Light    | Illuminance, lux x 10/12 (present in every 8th pkt) |
+### Base packet (5 B, always present)
 
-Total payload size varies: 7 B (light skipped), 10 B (full), 11 B (with ext code).
+| Offset | Bits      | Field           | Description                                   |
+|--------|-----------|-----------------|-----------------------------------------------|
+| 0      | [0]       | TX Status       | Last TX attempt (0=fail, 1=success)           |
+| 0      | [4:1]     | Packet ID       | Rolling 3-bit ID from cycle counter bits [2:0]|
+| 0      | [5]       | Sensor Status   | I2C sensors I/O (0=error, 1=success)          |
+| 0      | [7:6]     | BMP180 Temp[9:8]| MSB fragment                                  |
+| 1      | [7:0]     | BMP180 Temp[7:0]| LSBs, signed, -512..511 scale                 |
+| 2      | [6:0]     | BMP180 Pressure | mmHg - 700, unsigned, 0-127                   |
+| 2      | [7]       | SI7021 Humi[6]  | MSB bit of humidity                           |
+| 3      | [5:0]     | SI7021 Humi[5:0]| LSBs, max 127 %RH                             |
+| 3      | [7:6]     | SI7021 Temp[9:8]| MSB fragment                                  |
+| 4      | [7:0]     | SI7021 Temp[7:0]| LSBs, signed, C x 10                          |
+
+### ADC extension (+3 B, when PKT_ID == 0, total 8 B)
+
+| Offset | Bits      | Field           | Description                                   |
+|--------|-----------|-----------------|-----------------------------------------------|
+| 5      | [6:0]     | ADC Temp        | Die temperature, signed C                     |
+| 5      | [7]       | VBAT[8]         | MSB of battery (9 bits total)                 |
+| 6      | [7:0]     | VBAT[7:0]       | LSBs, mV                                      |
+| 7      | [7:0]     | VCC             | VREFINT-calibrated VDD - 160                  |
+
+### BH1750-only extension (+2 B at offset 5-6, replaces ADC, total 7 B)
+#### (PKT_ID != 0 and BH1750 not disabled)
+
+| Offset | Bits      | Field           | Description                                   |
+|--------|-----------|-----------------|-----------------------------------------------|
+| 5      | [7:0]     | BH1750[7:0]     | Illuminance LSB, little-endian                |
+| 6      | [7:0]     | BH1750[15:8]    | Illuminance MSB, lux x 10/12                  |
+
+### Full extension (+5 B, total 10 B, when PKT_ID == 0 and BH1750 not disabled)
+ADC occupies bytes 5-7, BH1750 occupies bytes 8-9:
+
+| Offset | Size      | Field           | Description                                   |
+|--------|-----------|-----------------|-----------------------------------------------|
+| 5-7    | 3 B       | (same as ADC)   | ADC Temp + VBAT + VCC                         |
+| 8-9    | 2 B       | BH1750          | Illuminance, lux x 10/12, little-endian       |
+
+Total payload size: **5 B** (base only), **7 B** (base + BH1750),
+**8 B** (base + ADC), **10 B** (base + ADC + BH1750).
+The 11 B variant requires `USE_EXT_CODE` (disabled by default).
+BH1750 is measured on every cycle unless set to DISABLED, and forced every
+8th packet regardless of disable state.
 
 ## Firmware Architecture
 
