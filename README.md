@@ -14,11 +14,15 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 - nRF24L01+ radio in Enhanced ShockBurst mode, variable payload (5-10 bytes)
 - ADC VREFINT, VBAT, VLOAD monitoring with DMA and auto-off
 - Adaptive wake interval: 1-3 minutes based on VBAT level
-- Power cycle of sensor rail on cold boot (load switch PF0 + DC-DC PA0)
+- Power cycle of sensor rail on any reset without prior cycle (load switch PF0 + DC-DC PA0)
 - CRC32-verified BMP180 calibration data stored in FLASH page
 - Standby mode between cycles (RTC alarm wake)
 - LSI calibration routine for RTC timing accuracy
 - Hourly / daily / weekly / monthly maintenance events
+- Dual-speed clocking: 8 MHz HSI for sensors/SPI, 32 MHz PLL burst for payload preparation
+- NRF24L01+ auto-reinit on two consecutive TX failures
+- Exception handlers (HardFault, NMI, SVC, PendSV) force Standby to prevent runaway
+- BH1750 adaptive resolution: disabled (0 lux), HiRes II (<15 lx), HiRes I (15-199 lx), LowRes (>200 lx)
 
 ## Hardware Specification
 
@@ -99,7 +103,11 @@ Total payload size: **5 B** (base only), **7 B** (base + BH1750),
 **8 B** (base + ADC), **10 B** (base + ADC + BH1750).
 The 11 B variant requires `USE_EXT_CODE` (disabled by default).
 BH1750 is measured on every cycle unless set to DISABLED, and forced every
-8th packet regardless of disable state.
+8th packet regardless of disable state. HiRes Mode 2 requires ~120 ms
+conversion time; the MCU sleeps during this interval.
+
+NRF24L01+ is woken via EXTI1 falling edge on PF1 (`__WFE()`), which
+resumes execution immediately when the radio asserts IRQ after TX.
 
 ## Firmware Architecture
 
@@ -158,6 +166,10 @@ Wake interval is adaptive based on battery voltage:
 
 If VBAT drops below 2.01 V (divider reading), the DC-DC converter is enabled. Above 2.26 V, it is disabled.
 
+During power cycle the load switch (PF0) is turned off, the rail is
+discharged until `adc_read_vload()` drops below 50 mV, then DC-DC is
+enabled and the rail is re-enabled once it rises above 240 mV.
+
 ## Getting Started
 
 ### Prerequisites
@@ -188,9 +200,13 @@ $ make program       # ST-LINK (ST-LINK_CLI.exe)
 | BMP180 PROM | CRC32-verified, stored in FLASH page |
 | System status | nvStatus in backup register (RTC domain) |
 | Cycle counter | RTC backup register |
-| LSI calibration | Recalculated every 4 hours |
+| LSI calibration | Recalculated every 4 hours via TIM14 capture of LSI through MCO (PA8), 16 samples with skip-8 warm-up |
 
 BMP180 calibration data is read from the sensor on first boot, verified with CRC32, written to FLASH, and loaded on subsequent boots to avoid repeated PROM reads.
+
+ADC buffers use a skip-first-2 approach for VREFINT: `vref_buf[18]` stores
+VREFINT in the first 2 (skip) + 16 elements; VBAT and temperature sensor
+use separate 16-element buffers. Averages are computed over 16 samples.
 
 ## Project Structure
 
