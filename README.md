@@ -167,7 +167,13 @@ Wake interval is adaptive based on battery voltage:
 | 1.05-1.15 V    | 2.5 min  |
 | <1.05 V        | 3 min    |
 
-If VBAT drops below 2.01 V (divider reading), the DC-DC converter is enabled. Above 2.26 V, it is disabled.
+When `adc_vbat == adc_vcc`, the DC-DC converter is off and the MCU is
+powered directly from the battery through the load switch. If VBAT drops
+below 2.01 V (divider reading), PA0 pulls the DC-DC enable line LOW,
+activating the boost converter which supplies 3.3 V to the MCU and sensor
+rail. When DC-DC is active (`adc_vbat != adc_vcc`) and VBAT rises above
+2.26 V, the converter is disabled to save power, and the system returns to
+direct battery operation.
 
 During power cycle the load switch (PF0) is turned off, the rail is
 discharged until `adc_read_vload()` drops below 50 mV, then DC-DC is
