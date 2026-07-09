@@ -143,7 +143,7 @@ BH1750 is measured on every cycle unless set to DISABLED, and forced every
 |---------------------|-------------|-----------------------------------|
 | Active (sensors)    | ~5-15 mA    | I2C + ADC + SPI active            |
 | Radio TX            | ~13 mA      | nRF24L01+ TX burst, ~1.5 ms       |
-| Standby (RTC alarm) | ~2.5 uA     | Cortex-M0 STOP + RTC on LSI       |
+| Standby (RTC alarm) | ~2.5 uA     | Cortex-M0 Standby + RTC on LSI    |
 | Sensor rail off     | ~1.5 uA     | Load switch PF0 disables sensors  |
 
 Wake interval is adaptive based on battery voltage:
