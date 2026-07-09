@@ -23,6 +23,9 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 - NRF24L01+ auto-reinit on two consecutive TX failures
 - Exception handlers (HardFault, NMI, SVC, PendSV) force Standby to prevent runaway
 - BH1750 adaptive resolution: disabled (0 lux), HiRes II (<15 lx), HiRes I (15-199 lx), LowRes (>200 lx)
+- Aggressive power saving: clock gating, GPIO analog mode, WFE, dual-speed PLL,
+  DMA, NRF24L01+ NoACK/variable payload, sensor rail disconnect, ADC auto-off,
+  I2C/SPI disable between operations
 
 ## Hardware Specification
 
@@ -169,6 +172,32 @@ If VBAT drops below 2.01 V (divider reading), the DC-DC converter is enabled. Ab
 During power cycle the load switch (PF0) is turned off, the rail is
 discharged until `adc_read_vload()` drops below 50 mV, then DC-DC is
 enabled and the rail is re-enabled once it rises above 240 mV.
+
+### Power Optimization Techniques
+
+The firmware applies numerous low-power tricks throughout:
+
+| Technique | Where | Purpose |
+|-----------|-------|---------|
+| **Clock gating** | Every function toggles `RCC->AHBENR` / `RCC->APB2ENR` | Only peripherals in use receive a clock |
+| **GPIO analog mode** | All pins set to `ANALOG_MODE_FOR_ALL_PINS` (0xFFFFFFFF) when idle | Eliminates floating-pin leakage currents |
+| **WFE instead of WFI** | `__WFE()` for sleep, delays, NRF IRQ wait | WFE is edge-triggered, doesn't wake on pending interrupts |
+| **Dual-speed MCU** | 8 MHz HSI for sensors/SPI, 32 MHz PLL only for payload packing | Faster payload prep reduces active time |
+| **Lowest speed for delays** | `RUN_MCU_AT(LOWEST_FREQ)` = HSI/512 (15.6 kHz) | Timer delays at minimal power |
+| **DMA transfers** | ADC uses DMA ch1, BMP180 PROM uses DMA ch3 | CPU sleeps (`__WFE()`) during DMA, wakes on transfer complete |
+| **I2C disable between ops** | `i2c_disable()` between sensor reads, `i2c_enable()` only when needed | I2C peripheral + pins powered down |
+| **SPI disable** | `RCC->APB2ENR = 0` when SPI not active | SPI peripheral clock removed |
+| **ADC auto-off** | `ADC_CFGR1_AUTOOFF` bit | ADC self-disables between conversions |
+| **HSI14 on-demand** | `RCC_CR2_HSI14ON` enabled only during ADC, disabled after | 14 MHz RC oscillator off when ADC idle |
+| **NRF24L01+ power down** | `NRF24_POWER_DOWN()` after each TX cycle | Radio oscillator off, ~900 nA standby |
+| **NRF24L01+ NoACK** | `W_TX_PAYLOAD_NOACK` command, `EN_PAYLOAD_NOACK` | No ACK wait reduces TX time |
+| **Variable payload size** | 5-10 bytes depending on available data | Shorter packets = shorter TX time |
+| **Sensor rail disconnect** | Load switch PF0 off between cycles | Entire sensor I2C bus powered off |
+| **BH1750 disable at 0 lux** | `NV_BH1750_DISABLED` when luminosity = 0 | Light sensor not re-measured |
+| **ADC skip** | `NV_SKIP_ADC` flag, re-measure only every 8th cycle when stable | VBAT/VREFINT measured infrequently |
+| **PVD for VDD detection** | `check_vdd()` uses Programmable Voltage Detector | Ensures VDD stable before proceeding |
+| **Standby between cycles** | Cortex-M0 Standby + RTC on LSI | Lowest possible MCU power mode (~2.5 uA) |
+| **RTC bypass shadow** | `RTC_CR_BYPSHAD` | Direct register read, no synchronization delay |
 
 ## Getting Started
 
