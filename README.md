@@ -6,7 +6,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 
 ## Features
 
-- Register-level, DMA-driven peripheral drivers (I2C, SPI, ADC, RTC)
+- Register-level peripheral drivers with DMA for ADC and BMP180 PROM reads; I2C and SPI interrupt-driven, RTC via EXTI
 - Three environmental sensors on shared I2C bus:
   - Bosch BMP180 - pressure and temperature (int32 compensation)
   - Silicon Labs SI7021 - humidity and temperature
