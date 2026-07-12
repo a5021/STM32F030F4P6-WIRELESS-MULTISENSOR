@@ -18,7 +18,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 - CRC32-verified BMP180 calibration data stored in FLASH page
 - Standby mode between cycles (RTC alarm wake)
 - LSI calibration routine for RTC timing accuracy
-- Hourly / daily / weekly / monthly maintenance events
+- Periodic maintenance events keyed to wake-cycle counters, approximating hourly / daily / weekly / monthly at the 1-minute interval (longer as the adaptive wake interval increases)
 - Dual-speed clocking: 8 MHz HSI for sensors/SPI, 32 MHz PLL burst for payload preparation
 - NRF24L01+ auto-reinit on two consecutive TX failures
 - Exception handlers (HardFault, NMI, SVC, PendSV) force Standby to prevent runaway
