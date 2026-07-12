@@ -125,8 +125,6 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
   RCC->APB1RSTR = 0;
   RCC->APB1ENR = RCC_APB1ENR_TIM14EN;
 
-  RCC->CFGR |= RCC_CFGR_MCO_LSI;          // set LSI as MCO source
-
   TIM14->CCMR1 |= TIM_CCMR1_CC1S_0;
   TIM14->OR = TIM14_OR_TI1_RMP;
   TIM14->CCER |= TIM_CCER_CC1E;
@@ -157,7 +155,7 @@ __STATIC_INLINE uint32_t calc_rtc_divider(void) {
   }
 
   RCC->APB1ENR = 0;                       // Disable TIM14
-  RCC->CFGR = 0;                          // Disable LSI as MCO source
+  RCC->CFGR = 0;                          // reset CFGR (clears MCO selector)
   RCC->APB1RSTR = RCC_APB1RSTR_TIM14RST;  // Reset TIM14
 
   preDiv_S = (uint16_t)(8000000UL * SAMPLE_NUM / ((sSum == 0) ? 3040UL : sSum) / PREDIV_A);

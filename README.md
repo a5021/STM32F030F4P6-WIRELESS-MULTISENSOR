@@ -235,7 +235,7 @@ $ make program       # ST-LINK (ST-LINK_CLI.exe)
 | BMP180 PROM | CRC32-verified, stored in FLASH page |
 | System status | nvStatus in backup register (RTC domain) |
 | Cycle counter | RTC backup register |
-| LSI calibration | Recalculated every 4 hours via TIM14 capture of LSI through MCO (PA8), 16 samples with skip-8 warm-up |
+| LSI calibration | Recalculated every 256 wake cycles (~4-13 h at the 1-3 min adaptive interval) via TIM14 input-capture of LSI using the internal TIM14_OR TI1_RMP remap (LSI routed internally to TIM14_CH1; no MCO/PA8 pin involved), 16 samples with skip-8 warm-up |
 
 BMP180 calibration data is read from the sensor on first boot, verified with CRC32, written to FLASH, and loaded on subsequent boots to avoid repeated PROM reads.
 
