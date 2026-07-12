@@ -338,7 +338,7 @@ int main() {
   }
 
 #ifdef USE_EXT_CODE
-  csr = (uint8_t)((csr >> 24) | (((csr & RCC_CSR_V18PWRRSTF) == RCC_CSR_V18PWRRSTF) ? 0 : 1);
+  csr = (uint8_t)((csr >> 24) | (((csr & RCC_CSR_V18PWRRSTF) == RCC_CSR_V18PWRRSTF) ? 0 : 1));
   if (csr != 0) {
     P_ARR[10] = csr;  //payload.ext_code = csr;
   }

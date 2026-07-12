@@ -33,7 +33,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 |-----------|--------|
 | MCU | STMicroelectronics STM32F030F4P6 (ARM Cortex-M0, 16 KB Flash, 4 KB RAM) |
 | Radio | Nordic nRF24L01+ (SPI1, 2 Mbps, channel 99, lowest TX power) |
-| Pressure | Bosch BMP180 (I2C addr 0x77, OSS up to ultra-high-res) |
+| Pressure | Bosch BMP180 (I2C addr 0x77, OSS=2 / high resolution, 13.5 ms) |
 | Humidity | Silicon Labs SI7021 (I2C addr 0x40) |
 | Light | Rohm BH1750FVI (I2C addr 0x23, 0.5-65535 lx) |
 | Power | DC-DC converter (PA0), load switch (PF0), VDD monitoring via PVD |
