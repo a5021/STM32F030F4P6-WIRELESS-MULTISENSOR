@@ -62,12 +62,16 @@ Variable-length payload transmitted via nRF24L01+ in Enhanced ShockBurst mode
 (NoACK, dynamic payload, 3-byte address, channel 99). Total size depends on
 data available: 5 B, 7 B, 8 B, or 10 B.
 
+The TX/RX address is left at the nRF24L01+ power-on default
+(`0xE7E7E7`, 3-byte width) and is not explicitly reprogrammed by the
+firmware; the receiver/repeater must use the same default address.
+
 ### Base packet (5 B, always present)
 
 | Offset | Bits      | Field           | Description                                   |
 |--------|-----------|-----------------|-----------------------------------------------|
 | 0      | [0]       | TX Status       | Last TX attempt (0=fail, 1=success)           |
-| 0      | [4:1]     | Packet ID       | Rolling 3-bit ID from cycle counter bits [2:0]|
+| 0      | [4:1]     | Packet ID       | 4-bit field; lower 3 bits = rolling ID from cycle counter bits [2:0], bit [4] reserved (always 0) |
 | 0      | [5]       | Sensor Status   | I2C sensors I/O (0=error, 1=success)          |
 | 0      | [7:6]     | BMP180 Temp[9:8]| MSB fragment                                  |
 | 1      | [7:0]     | BMP180 Temp[7:0]| LSBs, signed, -512..511 scale                 |
