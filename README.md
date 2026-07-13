@@ -104,7 +104,6 @@ ADC occupies bytes 5-7, BH1750 occupies bytes 8-9:
 
 Total payload size: **5 B** (base only), **7 B** (base + BH1750),
 **8 B** (base + ADC), **10 B** (base + ADC + BH1750).
-The 11 B variant requires `USE_EXT_CODE` (disabled by default).
 BH1750 is measured on every cycle unless set to DISABLED, and forced every
 8th packet regardless of disable state. HiRes Mode 2 requires ~120 ms
 conversion time; the MCU sleeps during this interval.
