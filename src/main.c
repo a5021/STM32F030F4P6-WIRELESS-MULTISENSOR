@@ -503,12 +503,14 @@ int main() {
 
   /****************************************************************************/
 
+  uint8_t prev_ok = TX_STATUS(nvStatus);       // previous attempt result, captured before update
+
   if (nrf_ok) {
     nvStatus |= NV_LAST_TX_ATTEMPT_OK;
   } else {
-    nvStatus &= ~(NV_LAST_TX_ATTEMPT_OK | NV_NRF_INIT_DONE) ;
-      // check if at least two transmissions consequently failed
-    if (TX_STATUS(nvStatus) == 0) {
+    nvStatus &= ~NV_LAST_TX_ATTEMPT_OK;         // record this failure
+    if (prev_ok == 0) {                         // this and previous failed -> two in a row
+      nvStatus &= ~NV_NRF_INIT_DONE;            // force NRF re-init next cycle
       if ((nvStatus & NV_EVENT_DAILY) == 0) {
         nvStatus = (nvStatus & ~NV_POWER_CYCLE_DONE) | NV_EVENT_DAILY;
       }
