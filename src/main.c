@@ -302,7 +302,7 @@ int main() {
       nvStatus |= NV_BH1750_MODE_LOW;        // use LowRes mode
     }
     // note: HiRes Mode 1 (both bits are low) will be set if light
-    //       intensity level is in range from 15 to 199.
+    //       intensity level is in range from 15 to 200.
   }
 
     // calculate payload size that depends on the data available

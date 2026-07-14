@@ -22,7 +22,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 - Dual-speed clocking: 8 MHz HSI for sensors/SPI, 32 MHz PLL burst for payload preparation
 - NRF24L01+ auto-reinit on two consecutive TX failures
 - Exception handlers (HardFault, NMI, SVC, PendSV) force Standby to prevent runaway
-- BH1750 adaptive resolution: disabled (0 lux), HiRes II (<15 lx), HiRes I (15-199 lx), LowRes (>200 lx)
+- BH1750 adaptive resolution: disabled (0 lux), HiRes II (<15 lx), HiRes I (15-200 lx), LowRes (>200 lx)
 - Aggressive power saving: clock gating, GPIO analog mode, WFE, dual-speed PLL,
   DMA, NRF24L01+ NoACK/variable payload, sensor rail disconnect, ADC auto-off,
   I2C/SPI disable between operations
