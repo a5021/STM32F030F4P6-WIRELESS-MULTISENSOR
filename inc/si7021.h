@@ -39,7 +39,7 @@ __STATIC_INLINE bool si7021_get_result(int32_t *res) {
   
   I2C_WAIT_FOR_STOP_FLAG();  // no sleep here
 
-  *res = (rData[0] << 8) | rData[1];
+  *res = ((rData[0] << 8) | rData[1]) & 0xFFFC;
 
   return true;
 }
