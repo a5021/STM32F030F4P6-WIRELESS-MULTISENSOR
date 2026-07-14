@@ -31,7 +31,7 @@ Multi-sensor wireless node based on STM32F030F4P6. Reads environmental data from
 
 | Component | Detail |
 |-----------|--------|
-| MCU | STMicroelectronics STM32F030F4P6 (ARM Cortex-M0, 16 KB Flash, 4 KB RAM) |
+| MCU | STMicroelectronics STM32F030F4P6 (ARM Cortex-M0, 16 KB Flash, 4 KB RAM). The firmware build targets the pin- and peripheral-compatible STM32F031x6 (CMSIS headers, linker script `STM32F031F6Px_FLASH.ld`, and startup in `drv/` / `ide/`) — see Project Structure. |
 | Radio | Nordic nRF24L01+ (SPI1, 2 Mbps, channel 99, lowest TX power) |
 | Pressure | Bosch BMP180 (I2C addr 0x77, OSS=2 / high resolution, 13.5 ms) |
 | Humidity | Silicon Labs SI7021 (I2C addr 0x40) |
@@ -79,7 +79,7 @@ firmware; the receiver/repeater must use the same default address.
 | 2      | [7]       | SI7021 Humi[6]  | MSB bit of humidity                           |
 | 3      | [5:0]     | SI7021 Humi[5:0]| LSBs, max 127 %RH                             |
 | 3      | [7:6]     | SI7021 Temp[9:8]| MSB fragment                                  |
-| 4      | [7:0]     | SI7021 Temp[7:0]| LSBs, signed, C x 10                          |
+| 4      | [7:0]     | SI7021 Temp[7:0]| LSBs, signed (10-bit total), C x 10, range -51.2..+51.1 C; saturates beyond that |
 
 ### ADC extension (+3 B, when PKT_ID == 0, total 8 B)
 
